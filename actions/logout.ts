@@ -6,5 +6,5 @@ import { redirect } from 'next/navigation'
 export const logoutAction = async () => {
   const supabase = createClient()
   await supabase.auth.signOut()
-  return redirect('/sign-in')
+  return redirect('/login')
 }

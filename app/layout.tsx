@@ -4,11 +4,12 @@ import { ThemeProvider } from 'next-themes'
 
 import './globals.css'
 import { createClient } from '../utils/supabase/server'
-import { logoutAction } from './actions/logout'
+import { logoutAction } from '../actions/logout'
 import { SubmitButton } from '@/components/submit-button'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { TailwindIndicator } from '@/components/TailwindIndicator'
+import { Toaster } from '@/components/ui/toaster'
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -39,7 +40,6 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TailwindIndicator />
           <main className="min-h-screen flex flex-col items-center max-w-7xl mx-auto">
             <div className="flex-1 w-full flex flex-col gap-20 items-center">
               <nav className="w-full p-4 flex items-center justify-end">
@@ -47,7 +47,9 @@ export default async function RootLayout({
                   <div className="flex items-center gap-2">
                     <p>Hello, {user.email}</p>
                     <form action={logoutAction}>
-                      <SubmitButton>Logout</SubmitButton>
+                      <SubmitButton pendingText="Logging out...">
+                        Logout
+                      </SubmitButton>
                     </form>
                   </div>
                 ) : (
@@ -76,6 +78,8 @@ export default async function RootLayout({
               </footer>
             </div>
           </main>
+          <TailwindIndicator />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

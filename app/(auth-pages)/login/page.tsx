@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { SubmitButton } from '../submit-button'
+import { SubmitButton } from '@/components/submit-button'
 import { z } from 'zod'
 import {
   Card,
@@ -39,7 +39,7 @@ export default function Login({
     const { error } = await supabase.auth.signInWithOtp({
       email: formSafeParsed.data.email,
       options: {
-        emailRedirectTo: `${origin}/auth/callback`,
+        emailRedirectTo: `${origin}/api/auth/callback`,
       },
     })
 
