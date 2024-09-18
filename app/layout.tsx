@@ -46,9 +46,12 @@ export default async function RootLayout({
               <nav className="w-full p-4 flex items-center justify-end fixed left-0 top-0 z-10">
                 {user ? (
                   <div className="flex items-center gap-2">
-                    <p>Hello, {user.email}</p>
+                    <p className="text-sm">Hello, {user.email}</p>
                     <form action={logoutAction}>
-                      <SubmitButton pendingText="Logging out...">
+                      <SubmitButton
+                        variant={'ghost'}
+                        pendingText="Logging out..."
+                      >
                         Logout
                       </SubmitButton>
                     </form>
@@ -58,11 +61,11 @@ export default async function RootLayout({
                     <Button>Login</Button>
                   </Link>
                 )}
-                <ThemeSwitcher />
               </nav>
               <div className="flex flex-col gap-20 max-w-5xl p-5">
                 {children}
               </div>
+              <ThemeSwitcher />
             </div>
           </main>
           <TailwindIndicator />

@@ -37,7 +37,7 @@ export function Form({ onChange, onSubmit, value }: Props) {
   const animationRef = useRef<HTMLDivElement | null>(null)
 
   const searchs = [
-    'How can optimze this query?',
+    'How can optimize this query?',
     'What are my DB stats?',
     'What indexes is my database ignoring?',
     'How can I get all users that signed up in the last 30 days?',

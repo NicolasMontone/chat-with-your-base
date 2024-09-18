@@ -39,6 +39,13 @@ export async function POST(req: Request) {
     - queryPerformance: Information about recent or currently running queries
     - unusedIndexes: Indexes that are rarely used but consume resources
     - runExplain: Run the explain command on a SQL query
+
+    RULES: 
+
+    - If the user asks about their DB, you should use the tools needed to answer the question.
+    - If you cannot answer the question, you should say so, or ask for more information.
+    - If the question is not related to the database, don't just reply with "I'm sorry, I can't answer that. I would be happy to help you with database related questions."
+
     `,
     maxSteps: 15,
     tools: {

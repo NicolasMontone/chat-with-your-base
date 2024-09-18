@@ -6,6 +6,8 @@ import { useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Form } from './form'
 import TextSkeleton from './text-skeleton'
+import Markdown from 'react-markdown'
+import CodeBlock from './code-block'
 
 export default function Chat() {
   const messagesChat = useRef<HTMLDivElement | null>(null)
@@ -38,7 +40,7 @@ export default function Chat() {
   return (
     <div
       ref={messagesChat}
-      className="h-screen overflow-auto sm:min-w-[70%] sm:w-[1000px] sm:max-w-[840px] relative sm:p-24 p-12 min-w-[90%] pt-20"
+      className="h-screen overflow-auto sm:min-w-[70%] sm:w-[1000px] sm:max-w-[840px] relative sm:p-24 sm:pt-0 p-12 pt-0 min-w-[90%]"
     >
       {messages?.map((m: Message) => (
         <div key={m.id}>
@@ -59,12 +61,18 @@ export default function Chat() {
               transition={{ duration: 0.75 }}
               className="mb-2 text-primary"
             >
-              {m.content}
+              <Markdown
+                components={{
+                  code: ({ children }) => <CodeBlock>{children}</CodeBlock>,
+                }}
+              >
+                {m.content}
+              </Markdown>
             </motion.span>
           )}
 
           <br />
-          <br />
+
           {m.role === 'assistant' && !m.toolInvocations && (
             <hr className="my-4" />
           )}
@@ -75,7 +83,10 @@ export default function Chat() {
       <Form
         onChange={handleInputChange}
         value={input}
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          handleSubmit(e)
+          scrollMessagesToBottom()
+        }}
       />
     </div>
   )

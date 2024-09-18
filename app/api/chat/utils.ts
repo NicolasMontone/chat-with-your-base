@@ -38,12 +38,13 @@ export async function getPublicTablesWithColumns(connectionString: string) {
       })
     )
 
+    await client.end()
+
     return tablesWithColumns
   } catch (error) {
     console.error('Error fetching tables with columns:', error)
-    throw error
-  } finally {
     await client.end()
+    return `Error fetching tables with columns, ${error}`
   }
 }
 
@@ -66,16 +67,23 @@ export async function getExplainForQuery(
 
   console.log('queryToRun', queryToRun)
   const client = new PGClient(connectionString)
-  await client.connect()
 
   try {
-    const explain = await client.query(`EXPLAIN ANALYZE ${queryToRun}`)
-    return explain.rows[0].query_plan
+    await client.connect()
+
+    console.log('client connected')
+    const explain = await client.query(`EXPLAIN ${queryToRun}`)
+    await client.end()
+
+    console.log('query plan', explain.rows)
+
+    return explain.rows
   } catch (error) {
     console.error('Error fetching explain for query:', error)
-    throw error
-  } finally {
     await client.end()
+    console.log('error running explain', error)
+
+    return `Error fetching explain for query, ${queryToRun}`
   }
 }
 
@@ -92,12 +100,12 @@ export async function runQuery(query: string, connectionString: string) {
 
   try {
     const result = await client.query(queryWithLimit)
+    await client.end()
     return result.rows
   } catch (error) {
     console.error('Error running query:', error)
-    throw error
-  } finally {
     await client.end()
+    return `Error running query, ${queryWithLimit}`
   }
 }
 
@@ -122,12 +130,12 @@ export async function getIndexStatsUsage(connectionString: string) {
       indexrelname;
     `)
 
+    await client.end()
     return result.rows
   } catch (error) {
     console.error('Error fetching index stats usage:', error)
-    throw error
-  } finally {
     await client.end()
+    return `Error fetching index stats usage, ${error}`
   }
 }
 
@@ -152,11 +160,11 @@ export async function getIndexes(connectionString: string) {
       indexname;
     `)
 
+    await client.end()
     return result.rows
   } catch (error) {
     console.error('Error fetching indexes:', error)
-    throw error
-  } finally {
     await client.end()
+    return `Error fetching indexes, ${error}`
   }
 }
