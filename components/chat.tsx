@@ -1,10 +1,8 @@
 'use client'
 
 import { Message, useChat } from 'ai/react'
-
-// import { validateDbConnection } from '@/actions/validate-db-connection'
 import { useLocalStorage } from 'usehooks-ts'
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Form } from './form'
 import TextSkeleton from './text-skeleton'
@@ -22,16 +20,20 @@ export default function Chat() {
     connectionString: '',
   })
 
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: '/api/chat',
-    keepLastMessageOnError: true,
-    headers: {
-      'x-connection-string': localStorageValue.connectionString,
-    },
-    onFinish: () => {
-      scrollMessagesToBottom()
-    },
-  })
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      api: '/api/chat',
+      keepLastMessageOnError: true,
+      headers: {
+        'x-connection-string': localStorageValue.connectionString,
+      },
+      onFinish: scrollMessagesToBottom,
+    })
+
+  const showSkeleton = useMemo(() => {
+    const lastMessageIsUser = messages[messages.length - 1]?.role === 'user'
+    return isLoading && lastMessageIsUser
+  }, [isLoading, messages])
 
   return (
     <div
@@ -68,6 +70,7 @@ export default function Chat() {
           )}
         </div>
       ))}
+      {showSkeleton && <TextSkeleton />}
 
       <Form
         onChange={handleInputChange}
