@@ -7,6 +7,7 @@ import { useLocalStorage } from 'usehooks-ts'
 import { useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Form } from './form'
+import TextSkeleton from './text-skeleton'
 
 export default function Chat() {
   const messagesChat = useRef<HTMLDivElement | null>(null)
