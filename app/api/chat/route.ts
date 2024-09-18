@@ -2,7 +2,12 @@ import { openai } from '@ai-sdk/openai'
 import { streamText, convertToCoreMessages, tool } from 'ai'
 import { headers } from 'next/headers'
 import { z } from 'zod'
-import { getExplainForQuery, getPublicTablesWithColumns } from './utils'
+import {
+  getExplainForQuery,
+  getIndexes,
+  getIndexStatsUsage,
+  getPublicTablesWithColumns,
+} from './utils'
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
@@ -35,6 +40,7 @@ export async function POST(req: Request) {
     - unusedIndexes: Indexes that are rarely used but consume resources
     - runExplain: Run the explain command on a SQL query
     `,
+    maxSteps: 15,
     tools: {
       getPublicTablesWithColumns: tool({
         description:
@@ -45,6 +51,7 @@ export async function POST(req: Request) {
         },
         parameters: z.object({}),
       }),
+
       getExplainForQuery: tool({
         description:
           'Analyzes and optimizes a given SQL query, providing detailed explanations for the query plan and execution in json format. If the query is not valid, it should return an error message.',
@@ -55,6 +62,26 @@ export async function POST(req: Request) {
         parameters: z.object({
           query: z.string().describe('The SQL query to analyze'),
         }),
+      }),
+
+      getIndexStatsUsage: tool({
+        description:
+          'Get the usage stats for a given index. If the index is not valid, it should return an error message.',
+        execute: async ({}) => {
+          const indexStats = await getIndexStatsUsage(connectionString)
+          return indexStats
+        },
+        parameters: z.object({}),
+      }),
+
+      getIndexes: tool({
+        description:
+          'Get the indexes for a given database. If the database is not valid, it should return an error message.',
+        execute: async ({}) => {
+          const indexes = await getIndexes(connectionString)
+          return indexes
+        },
+        parameters: z.object({}),
       }),
     },
   })

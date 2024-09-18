@@ -40,9 +40,10 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-screen flex flex-col items-center max-w-7xl mx-auto">
-            <div className="flex-1 w-full flex flex-col gap-20 items-center">
-              <nav className="w-full p-4 flex items-center justify-end">
+          <main className="min-h-screen flex flex-col items-center max-w-full mx-auto">
+            <div className="h-screen w-full dark:bg-black bg-white  dark:bg-dot-white/[0.2] bg-dot-black/[0.2] relative flex items-center justify-center">
+              <div className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-black bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
+              <nav className="w-full p-4 flex items-center justify-end fixed left-0 top-0 z-10">
                 {user ? (
                   <div className="flex items-center gap-2">
                     <p>Hello, {user.email}</p>
@@ -57,25 +58,11 @@ export default async function RootLayout({
                     <Button>Login</Button>
                   </Link>
                 )}
+                <ThemeSwitcher />
               </nav>
               <div className="flex flex-col gap-20 max-w-5xl p-5">
                 {children}
               </div>
-
-              <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-                <p>
-                  Powered by{' '}
-                  <a
-                    href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-                    target="_blank"
-                    className="font-bold hover:underline"
-                    rel="noreferrer"
-                  >
-                    Supabase
-                  </a>
-                </p>
-                <ThemeSwitcher />
-              </footer>
             </div>
           </main>
           <TailwindIndicator />
