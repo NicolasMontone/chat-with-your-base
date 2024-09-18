@@ -4,12 +4,9 @@ import { ThemeProvider } from 'next-themes'
 
 import './globals.css'
 import { createClient } from '../utils/supabase/server'
-import { logoutAction } from '../actions/logout'
-import { SubmitButton } from '@/components/submit-button'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
 import { TailwindIndicator } from '@/components/TailwindIndicator'
 import { Toaster } from '@/components/ui/toaster'
+import Navbar from '../components/navbar'
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -43,25 +40,7 @@ export default async function RootLayout({
           <main className="min-h-screen flex flex-col items-center max-w-full mx-auto">
             <div className="h-screen w-full dark:bg-black bg-white  dark:bg-dot-white/[0.2] bg-dot-black/[0.2] relative flex items-center justify-center">
               <div className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-black bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
-              <nav className="w-full p-4 flex items-center justify-end fixed left-0 top-0 z-10">
-                {user ? (
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm">Hello, {user.email}</p>
-                    <form action={logoutAction}>
-                      <SubmitButton
-                        variant={'ghost'}
-                        pendingText="Logging out..."
-                      >
-                        Logout
-                      </SubmitButton>
-                    </form>
-                  </div>
-                ) : (
-                  <Link href="/login">
-                    <Button>Login</Button>
-                  </Link>
-                )}
-              </nav>
+              <Navbar user={user} />
               <div className="flex flex-col gap-20 max-w-5xl p-5">
                 {children}
               </div>
