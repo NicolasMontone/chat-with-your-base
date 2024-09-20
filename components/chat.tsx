@@ -40,12 +40,12 @@ export default function Chat() {
   return (
     <div
       ref={messagesChat}
-      className="h-screen overflow-auto sm:min-w-[70%] sm:w-[1000px] sm:max-w-[840px] relative sm:p-24 sm:pt-0 p-12 pt-0 min-w-[90%]"
+      className="h-screen overflow-auto sm:min-w-[70%] sm:w-[1000px] sm:max-w-[840px] relative sm:p-28 sm:pt-0 p-12 pt-0 min-w-[90%]"
     >
       {messages?.map((m: Message) => (
         <div key={m.id}>
           {m.role === 'user' ? (
-            <div className="text-3xl text-primary font-semibold">
+            <div className="text-2xl text-primary font-semibold">
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -64,6 +64,28 @@ export default function Chat() {
               <Markdown
                 components={{
                   code: ({ children }) => <CodeBlock>{children}</CodeBlock>,
+                  li: ({ children }) => <li className="my-1">{children}</li>,
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-4 my-1">{children}</ul>
+                  ),
+                  h1: ({ children }) => (
+                    <h1 className="text-2xl font-bold my-2">{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-xl font-semibold my-1">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-lg font-medium my-1">{children}</h3>
+                  ),
+                  h4: ({ children }) => (
+                    <h4 className="text-base font-normal my-1">{children}</h4>
+                  ),
+                  h5: ({ children }) => (
+                    <h5 className="text-sm font-normal my-1">{children}</h5>
+                  ),
+                  h6: ({ children }) => (
+                    <h6 className="text-xs font-normal my-1">{children}</h6>
+                  ),
                 }}
               >
                 {m.content}

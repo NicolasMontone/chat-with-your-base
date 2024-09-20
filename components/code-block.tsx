@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react'
 export default function CodeBlock({ children }: { children: React.ReactNode }) {
   if (typeof children === 'string' && children.length < 40) {
     return (
-      <span className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 inline-block p-[2px] rounded-sm font-mono">
+      <span className="bg-secondary text-secondary-foreground inline-block p-[2px] rounded-sm font-mono">
         {children}
       </span>
     )
@@ -28,10 +28,10 @@ export default function CodeBlock({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={
-        'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 w-full p-4 text-sm flex flex-col gap-1 rounded-md relative my-3'
+        'bg-secondary text-secondary-foreground w-full p-4 text-sm flex flex-col gap-1 rounded-md relative my-3'
       }
     >
-      <div className="w-full flex justify-end py-1 absolute top-4 right-4">
+      <div className="w-full flex justify-end py-1">
         <div className="w-4 h-4">
           {copied ? (
             <Check size={15} />

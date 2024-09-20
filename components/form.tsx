@@ -72,10 +72,7 @@ export function Form({ onChange, onSubmit, value }: Props) {
         top: '50%',
       }}
       animate={{
-        top:
-          conversationStarted && height
-            ? `${height - (inputRef.current?.offsetHeight ?? 0)}px`
-            : '50%',
+        top: conversationStarted && height ? `${height - 80}px` : '50%',
       }}
       transition={{
         duration: 0.5,
@@ -112,7 +109,7 @@ export function Form({ onChange, onSubmit, value }: Props) {
             scale: focused ? 1 : 0.4,
           }}
           transition={{
-            duration: 4,
+            duration: 0.41,
             ease: 'easeInOut',
           }}
           className="absolute top-2 blur-md bg-primary w-full h-16 animate-pulse pointer-events-none -z-10 transition-all duration-[2400] ease-out rounded-sm"
