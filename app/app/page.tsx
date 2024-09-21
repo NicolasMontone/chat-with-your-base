@@ -10,9 +10,11 @@ export default async function ProtectedPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  const isCli = process.env.IS_CLI === 'true'
+
+  if (!user && !isCli) {
     return redirect('/login')
   }
 
-  return <ChatInterface />
+  return <ChatInterface isCli={isCli} />
 }

@@ -26,32 +26,39 @@ import {
   CardContent,
 } from '@/components/ui/card'
 
-const FormSchema = z.object({
+const formSchema = z.object({
   connectionString: z.string().min(1, {
     message: 'Connection string is required.',
   }),
+  // make it non optional if isCli is true
+  openaiApiKey: z.string().optional(),
 })
 
 export function ConnectionForm({
   setConnectionString,
+  isCli,
 }: {
   setConnectionString: React.Dispatch<
     React.SetStateAction<{
       connectionString: string
     }>
   >
+  isCli: boolean
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [testSuccess, setTestSuccess] = useState(false)
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       connectionString: '',
     },
   })
 
-  async function onSubmit({ connectionString }: z.infer<typeof FormSchema>) {
+  async function onSubmit({
+    connectionString,
+    openaiApiKey,
+  }: z.infer<typeof formSchema>) {
     setIsLoading(true)
     let result: string = ''
     try {
@@ -110,6 +117,25 @@ export function ConnectionForm({
                 </FormItem>
               )}
             />
+            {isCli && (
+              <FormField
+                control={form.control}
+                name="openaiApiKey"
+                render={({ field }) => (
+                  <FormItem className="space-y-2 w-full">
+                    <FormLabel>OpenAI API Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter your OpenAI API key"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <div className="flex gap-4 mt-4">
               <Button type="submit" disabled={isLoading}>
                 Save Connection

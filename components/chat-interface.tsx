@@ -6,9 +6,9 @@ import ConnectionForm from './connection-form'
 import { useIsMounted } from '@/hooks/use-is-mounted'
 import { AnimatePresence } from 'framer-motion'
 
-export default function ChatInterface() {
+export default function ChatInterface({ isCli }: { isCli: boolean }) {
   const isMounted = useIsMounted()
-  const [value, setValue, removeValue] = useLocalStorage('postgres-key', {
+  const [value, setValue] = useLocalStorage('postgres-key', {
     connectionString: '',
   })
 
@@ -19,11 +19,11 @@ export default function ChatInterface() {
   return (
     <AnimatePresence>
       {value.connectionString !== '' ? (
-        <div className="flex flex-col gap-4 pt-40 h-screen max-h-screen scroll-auto">
+        <div className="flex flex-col gap-4 pt-32 h-screen max-h-screen scroll-auto">
           <Chat />
         </div>
       ) : (
-        <ConnectionForm setConnectionString={setValue} />
+        <ConnectionForm setConnectionString={setValue} isCli={isCli} />
       )}
     </AnimatePresence>
   )

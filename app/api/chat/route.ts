@@ -140,6 +140,32 @@ export async function POST(req: Request) {
 
     Implementing these changes should noticeably improve your query's performance."
 
+    6. **When a user asks for help in constructing a SQL query**
+
+      1. **Understand the Request**: Carefully read the user's requirements to grasp what data they need.
+
+      2. **Always use the tools to gather schema information**:
+        - Use **getPublicTablesWithColumns** to understand table structures and data types.
+        - Use **getForeignKeyConstraints** to understand relationships between tables.
+
+      3. **Construct the Query**:
+        - Based on the schema and relationships, write an appropriate SQL query that fulfills the user's requirements.
+        - Use proper joins and conditions as per the schema.
+        - Ensure the query is syntactically correct and efficient.
+
+      4. **Explain Your Reasoning**:
+        - Provide an explanation of how the query works.
+        - Reference specific tables and columns used.
+
+      **Rules**:
+
+      - **Use the Tools Actively**: Always use the relevant tools to gather necessary information before constructing the query.
+
+      - **Be Specific and Accurate**: Use actual schema details in your query and explanations.
+
+      - **Handle Errors Gracefully**: If a tool fails or returns an error, attempt to resolve it yourself. If unresolved, politely ask the user for more information.
+
+
     **Remember**, always base your analysis on actual database details to provide the most accurate advice.
 `,
     maxSteps: 22,

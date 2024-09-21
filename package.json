@@ -1,5 +1,10 @@
 {
-  "private": true,
+  "name": "chat-with-your-base",
+  "version": "1.0.0",
+  "private": false,
+  "bin": {
+    "chat-with-your-base": "bin/cli.js"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,8 +20,10 @@
     "@radix-ui/react-toast": "^1.2.1",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "@types/prismjs": "^1.26.4",
     "ai": "^3.3.39",
     "autoprefixer": "10.4.17",
+    "chalk": "4.1.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.5.4",
@@ -26,8 +33,10 @@
     "next": "latest",
     "next-themes": "^0.3.0",
     "openai": "^4.61.1",
+    "openurl": "^1.1.1",
     "pg": "^8.12.0",
     "prettier": "^3.3.3",
+    "prismjs": "^1.29.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.53.0",

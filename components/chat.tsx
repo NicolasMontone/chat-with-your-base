@@ -63,7 +63,15 @@ export default function Chat() {
             >
               <Markdown
                 components={{
-                  code: ({ children }) => <CodeBlock>{children}</CodeBlock>,
+                  code: ({ children, className }) => {
+                    return (
+                      <CodeBlock
+                        language={className?.includes('sql') ? 'sql' : 'markup'}
+                      >
+                        {children}
+                      </CodeBlock>
+                    )
+                  },
                   li: ({ children }) => <li className="my-1">{children}</li>,
                   ul: ({ children }) => (
                     <ul className="list-disc pl-4 my-1">{children}</ul>

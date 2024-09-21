@@ -14,7 +14,7 @@ export default function Navbar({ user }: { user: User | null }) {
     connectionString: '',
   })
 
-  const mounted = useIsMounted
+  const mounted = useIsMounted()
 
   if (!mounted) return null
 
@@ -24,15 +24,13 @@ export default function Navbar({ user }: { user: User | null }) {
         {user ? (
           <div className="flex items-center gap-2">
             <p className="text-sm">Hello, {user.email}</p>
-            {
+            {value.connectionString && (
               <AnimatePresence>
-                {value.connectionString && (
-                  <Button variant={'secondary'} onClick={() => removeValue()}>
-                    Change Database
-                  </Button>
-                )}
+                <Button variant={'secondary'} onClick={() => removeValue()}>
+                  Change Database
+                </Button>
               </AnimatePresence>
-            }
+            )}
             <form action={logoutAction}>
               <SubmitButton variant={'ghost'} pendingText="Logging out...">
                 Logout

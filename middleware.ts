@@ -1,8 +1,16 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { NextResponse, type NextRequest } from 'next/server'
+import { updateSession } from '@/utils/supabase/middleware'
+
+const isCli = process.env.IS_CLI === 'true'
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  const pathsToExcludeInCli = ['/app', '/api']
+  // 
+  if (isCli && !pathsToExcludeInCli.includes(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL('/app', request.url))
+  }
+
+  return await updateSession(request)
 }
 
 export const config = {
@@ -15,6 +23,6 @@ export const config = {
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}
