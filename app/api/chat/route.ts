@@ -190,7 +190,7 @@ export async function POST(req: Request) {
     tools: {
       getPublicTablesWithColumns: tool({
         description:
-          'Retrieves a list of public tables and their columns from the connected PostgreSQL database.',
+          'Retrieves a list of tables and their columns from the connected PostgreSQL database.',
         execute: async () => {
           const tables = await getPublicTablesWithColumns(connectionString)
           return tables
