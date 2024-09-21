@@ -6,12 +6,23 @@ const chalk = require('chalk')
 
 process.env.IS_CLI = 'true'
 
-const port = 5005
+// Add argument parsing
+const argv = require('yargs')
+  .option('port', {
+    alias: 'p',
+    description: 'Port to run the server on',
+    type: 'number',
+    default: 5005
+  })
+  .help()
+  .argv
+
+const port = argv.port
 const isWin = process.platform === 'win32'
 const nextBinary = isWin ? 'next.cmd' : 'next'
 const nextPath = path.resolve(__dirname, '../node_modules/.bin', nextBinary)
 
-console.log(chalk.cyan('Starting the app...'))
+console.log(chalk.cyan(`Starting the app on port ${port}...`))
 
 // Start the Next.js app
 const child = exec(`"${nextPath}" start -p ${port}`, { stdio: 'inherit' })

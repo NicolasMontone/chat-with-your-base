@@ -112,7 +112,7 @@ export function Form({ onChange, onSubmit, value }: Props) {
             duration: 0.41,
             ease: 'easeInOut',
           }}
-          className="absolute top-2 blur-md bg-primary w-full h-16 animate-pulse pointer-events-none -z-10 transition-all duration-[2400] ease-out rounded-sm"
+          className="absolute top-2 blur-md bg-primary w-full h-16 animate-pulse pointer-events-none -z-10 transition-all duration-[2400ms] ease-out rounded-sm"
           ref={animationRef}
         />
 

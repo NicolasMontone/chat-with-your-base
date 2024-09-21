@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { streamText, convertToCoreMessages, tool } from 'ai'
 import { headers } from 'next/headers'
 import { z } from 'zod'
@@ -11,6 +11,7 @@ import {
   getTableStats,
 } from './utils'
 
+const isCli = process.env.IS_CLI === 'true'
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
 
@@ -18,13 +19,30 @@ export async function POST(req: Request) {
   const { messages } = await req.json()
 
   const connectionString = headers().get('x-connection-string')
+  const openaiApiKey = headers().get('x-openai-api-key')
+  const model = headers().get('x-model')
 
   if (!connectionString) {
     return new Response('No connection string provided', { status: 400 })
   }
 
+  if (isCli && !openaiApiKey) {
+    return new Response('No OpenAI API key provided', { status: 400 })
+  }
+
+  if (isCli && !model) {
+    return new Response('No model provided', { status: 400 })
+  }
+
+  const projectOpenaiApiKey = process.env.OPENAI_API_KEY
+
+  const openai = createOpenAI({
+    apiKey: isCli ? openaiApiKey! : projectOpenaiApiKey!,
+  })
+
   const result = await streamText({
-    model: openai('gpt-4o-mini'),
+    // todo remove any we already validate the filed
+    model: isCli ? openai(model as any) : openai('gpt-4o-mini'),
     messages: convertToCoreMessages(messages),
     system: `
     You are a PostgreSQL database optimization expert specializing in query performance tuning. Your goal is to help users improve the performance of their SQL queries by providing detailed, data-driven analysis and specific recommendations based on their actual database schema and data.

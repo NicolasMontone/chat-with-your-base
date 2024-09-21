@@ -1,7 +1,7 @@
 'use client'
 
 import { Message, useChat } from 'ai/react'
-import { useLocalStorage } from 'usehooks-ts'
+import { useAppState } from '@/hooks/use-app-state'
 import { useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Form } from './form'
@@ -18,16 +18,16 @@ export default function Chat() {
     messagesChat.current.scrollTop = messagesChat.current.scrollHeight
   }, [])
 
-  const [localStorageValue] = useLocalStorage('postgres-key', {
-    connectionString: '',
-  })
+  const { value } = useAppState()
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
       api: '/api/chat',
       keepLastMessageOnError: true,
       headers: {
-        'x-connection-string': localStorageValue.connectionString,
+        'x-connection-string': value.connectionString,
+        'x-openai-api-key': value.openaiApiKey,
+        'x-model': value.model,
       },
       onFinish: scrollMessagesToBottom,
     })
