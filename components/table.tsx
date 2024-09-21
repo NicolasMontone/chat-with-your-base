@@ -77,9 +77,10 @@ export const DataTable = <TValue,>({
                   <TableCell
                     key={cell.id}
                     style={{
-                      width: cell.column.getSize(),
-                      minWidth: cell.column.columnDef.minSize,
+                      width: Math.min(cell.column.getSize(), 100),
+                      minWidth: `100px`,
                     }}
+                    className="max-h-9"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

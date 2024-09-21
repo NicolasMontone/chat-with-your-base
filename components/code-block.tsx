@@ -27,9 +27,10 @@ export default function CodeBlock({
   isDisabled?: boolean
 }) {
   const { value } = useAppState()
+
   useEffect(() => {
     Prism.highlightAll()
-  }, [children, language])
+  }, [])
 
   if (
     language !== 'sql' &&
