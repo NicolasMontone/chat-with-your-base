@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "publish-cli": "next build && npm publish"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.60",
