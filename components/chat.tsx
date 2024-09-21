@@ -2,12 +2,13 @@
 
 import { Message, useChat } from 'ai/react'
 import { useAppState } from '@/hooks/use-app-state'
-import { useRef, useCallback, useMemo } from 'react'
+import { useRef, useCallback, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Form } from './form'
 import TextSkeleton from './text-skeleton'
 import Markdown from 'react-markdown'
 import CodeBlock from './code-block'
+import type { QueryResult } from 'pg'
 
 const toolCallToNameText = {
   getExplainForQuery: 'Getting query plan...',
@@ -52,6 +53,21 @@ export default function Chat() {
     return (toolInvocation ?? []).filter((tool) => tool.state === 'call')
   }, [isLoading, messages])
 
+  // New state to manage SQL results
+  const [sqlResults, setSqlResults] = useState<{
+    [key: string]: QueryResult<unknown[]> | string
+  }>({})
+
+  const handleSetSqlResult = useCallback(
+    (messageId: string, result: QueryResult<unknown[]> | string) => {
+      setSqlResults((prev) => ({
+        ...prev,
+        [messageId]: result,
+      }))
+    },
+    []
+  )
+
   return (
     <div
       ref={messagesChat}
@@ -81,11 +97,18 @@ export default function Chat() {
               >
                 <Markdown
                   components={{
-                    code: ({ children, className }) => {
+                    code: ({ className, children }) => {
+                      const language = className?.includes('sql')
+                        ? 'sql'
+                        : 'markup'
                       return (
                         <CodeBlock
-                          language={
-                            className?.includes('sql') ? 'sql' : 'markup'
+                          // when Is generating text don't run sql
+                          isDisabled={isLoading}
+                          language={language}
+                          sqlResult={sqlResults[m.id]}
+                          setSqlResult={(result) =>
+                            handleSetSqlResult(m.id, result)
                           }
                         >
                           {children}

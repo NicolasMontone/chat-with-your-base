@@ -5,20 +5,37 @@ import { useCallback, useState, useEffect } from 'react'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
 import 'prismjs/themes/prism-okaidia.css'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
+import { runSql } from '@/actions/run-sql'
+import { toast } from '@/hooks/use-toast'
+
+import { useAppState } from '../hooks/use-app-state'
+import type { QueryResult } from 'pg'
+import SqlResult from './sql-result'
 
 export default function CodeBlock({
   children,
   language,
+  sqlResult,
+  setSqlResult,
+  isDisabled,
 }: {
   children: React.ReactNode
   language?: string
+  sqlResult?: QueryResult<unknown[]> | string
+  setSqlResult: (result: QueryResult<unknown[]> | string) => void
+  isDisabled?: boolean
 }) {
+  const { value } = useAppState()
   useEffect(() => {
     Prism.highlightAll()
   }, [children, language])
 
-  if (typeof children === 'string' && children.length < 40) {
+  if (
+    language !== 'sql' &&
+    typeof children === 'string' &&
+    children.length < 40
+  ) {
     return (
       <span className="bg-[#121211] text-[#f8f8f2] inline-block p-1 rounded-sm font-mono">
         {children}
@@ -38,6 +55,34 @@ export default function CodeBlock({
       console.error('Failed to copy to clipboard', error)
     }
   }, [children])
+
+  const [isLoading, setIsLoading] = useState(false)
+
+  const run = useCallback(async () => {
+    if (!children?.toString()) {
+      toast({
+        title: 'No SQL query provided',
+        description: 'Please provide a valid SQL query',
+      })
+      return
+    }
+    setIsLoading(true)
+
+    const sqlFunctionBinded = runSql.bind(
+      null,
+      children?.toString(),
+      value.connectionString
+    )
+    const result = await sqlFunctionBinded()
+    try {
+      const parsedResult = JSON.parse(result)
+      setSqlResult && setSqlResult(parsedResult)
+    } catch {
+      setSqlResult && setSqlResult(result)
+    }
+
+    setIsLoading(false)
+  }, [children, setSqlResult])
 
   return (
     <div className="flex flex-col my-3 gap-2">
@@ -59,13 +104,19 @@ export default function CodeBlock({
           <code className={`language-${language ?? 'markup'}`}>{children}</code>
         </pre>
       </div>
+      {isLoading ? (
+        <div className="w-full h-32 bg-primary opacity-20 rounded-md animate-pulse" />
+      ) : sqlResult ? (
+        <SqlResult result={sqlResult} />
+      ) : null}
+
       {language === 'sql' && (
         <Button
+          disabled={isDisabled}
+          aria-disabled={isDisabled}
           size={'sm'}
           variant={'outline'}
-          onClick={() => {
-            throw new Error('Not Implemented')
-          }}
+          onClick={run}
         >
           Run SQL
         </Button>

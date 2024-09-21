@@ -23,6 +23,7 @@
     "@radix-ui/react-toast": "^1.2.1",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "@tanstack/react-table": "^8.20.5",
     "@types/prismjs": "^1.26.4",
     "ai": "^3.3.39",
     "autoprefixer": "10.4.17",
