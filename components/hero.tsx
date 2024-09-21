@@ -1,44 +1,29 @@
-import NextLogo from "./next-logo";
-import SupabaseLogo from "./supabase-logo";
+import React from 'react'
+import { Spotlight } from '@/components/ui/spotlight'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
-export default function Header() {
+export function Hero() {
   return (
-    <div className="flex flex-col gap-16 items-center">
-      <div className="flex gap-8 justify-center items-center">
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <SupabaseLogo />
-        </a>
-        <span className="border-l rotate-45 h-6" />
-        <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
-          <NextLogo />
-        </a>
+    <div className="h-[30rem] w-full rounded-md md:items-center antialiased relative">
+      <Spotlight
+        className="-top-40 left-0 md:left-60 md:-top-40"
+        fill="white"
+      />
+      <div className=" p-4 max-w-7xl  mx-auto relative z-10  w-full pt-20 md:pt-0">
+        <h1 className="text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
+          Chat with your <br /> base
+        </h1>
+        <p className="mt-4 font-normal text-base text-neutral-300 max-w-lg text-center mx-auto">
+          Unlock the power of your data: Connect any Postgres database and let
+          our AI dive deep. Chat to query, analyze, and even run operations -
+          all from one intuitive interface. Experience the future of database
+          interaction today!
+        </p>
       </div>
-      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
-      <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">
-        The fastest way to build apps with{" "}
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Supabase
-        </a>{" "}
-        and{" "}
-        <a
-          href="https://nextjs.org/"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Next.js
-        </a>
-      </p>
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
+      <Link href="/login">
+        <Button className="mt-4 w-full">Get Started</Button>
+      </Link>
     </div>
-  );
+  )
 }

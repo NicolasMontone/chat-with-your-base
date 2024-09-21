@@ -128,6 +128,17 @@ export function ConnectionForm({
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2 w-full">
             <label htmlFor="connectionString">Connection String</label>
+            <p className="text-sm text-gray-500">
+              We don't store your connection string. It's saved in your browser,
+              you can see the source code{' '}
+              <a
+                href="https://github.com/NicolasMontone/chat-with-your-base"
+                target="_blank"
+                className="text-primary underline"
+              >
+                Here
+              </a>
+            </p>
             <Input
               id="connectionString"
               className="w-full"

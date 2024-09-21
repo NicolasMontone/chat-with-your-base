@@ -59,7 +59,17 @@ export default function Navbar({
                 </Button>
               </AnimatePresence>
             )}
-            <form action={logoutAction}>
+            <form
+              action={async () => {
+                setValue({
+                  connectionString: '',
+                  openaiApiKey: '',
+                  model: 'gpt-4o-mini',
+                })
+
+                await logoutAction()
+              }}
+            >
               <SubmitButton variant="ghost" pendingText="Logging out...">
                 Logout
               </SubmitButton>
