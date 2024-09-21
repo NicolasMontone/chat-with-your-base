@@ -33,13 +33,16 @@ export default function Login({
       return redirect('/login?errorMessage=Invalid email')
     }
 
-    const origin = headers().get('origin')
+    const defaultUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000'
+
     const supabase = createClient()
 
     const { error } = await supabase.auth.signInWithOtp({
       email: formSafeParsed.data.email,
       options: {
-        emailRedirectTo: `${origin}/api/auth/callback`,
+        emailRedirectTo: `${defaultUrl}/api/auth/callback`,
       },
     })
 
