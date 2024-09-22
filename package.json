@@ -9,7 +9,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "prepublishOnly": "pnpm run build",
     "publish-cli": "npm publish"
   },
   "dependencies": {
