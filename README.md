@@ -34,4 +34,8 @@ pnpm run dev
 
 #### Ask it to generate SQL
 
-![Ask it to generate SQL and run it](/query.mov)
+![Ask it to generate SQL](/sql.png)
+
+#### Run SQL
+
+![Run SQL](/run-sql.png)
