@@ -10,8 +10,7 @@
     "build": "next build",
     "start": "next start",
     "prepublishOnly": "pnpm run build",
-    "publish-cli": "pnpm run build && npm publish",
-    "postinstall": "next build"
+    "publish-cli": "npm publish"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.60",
