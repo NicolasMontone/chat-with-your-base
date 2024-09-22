@@ -101,7 +101,7 @@ export default function CodeBlock({
             )}
           </div>
         </div>
-        <pre className="!bg-primary !text-[#f8f8f2] w-full !p-5 !pt-8 text-sm rounded-md overflow-auto">
+        <pre className="!bg-prima !text-[#f8f8f2] w-full !p-5 !pt-8 text-sm rounded-md overflow-auto">
           <code className={`language-${language ?? 'markup'}`}>{children}</code>
         </pre>
       </div>
