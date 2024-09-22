@@ -1,10 +1,8 @@
 'use client'
 
 import { Check, Copy } from 'lucide-react'
-import { useCallback, useState, useEffect } from 'react'
-import Prism from 'prismjs'
-import 'prismjs/components/prism-sql'
-import 'prismjs/themes/prism-okaidia.css'
+import { useState, memo } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { runSql } from '@/actions/run-sql'
 import { toast } from '@/hooks/use-toast'
@@ -13,7 +11,7 @@ import { useAppState } from '../hooks/use-app-state'
 import type { QueryResult } from 'pg'
 import SqlResult from './sql-result'
 
-export default function CodeBlock({
+function CodeBlock({
   children,
   language,
   sqlResult,
@@ -28,24 +26,9 @@ export default function CodeBlock({
 }) {
   const { value } = useAppState()
 
-  useEffect(() => {
-    Prism.highlightAll()
-  }, [])
-
-  if (
-    language !== 'sql' &&
-    typeof children === 'string' &&
-    children.length < 40
-  ) {
-    return (
-      <span className="bg-[#121211] text-[#f8f8f2] inline-block p-1 rounded-sm font-mono">
-        {children}
-      </span>
-    )
-  }
   const [copied, setCopied] = useState(false)
 
-  const copyToClipboard = useCallback(async () => {
+  const copyToClipboard = async () => {
     try {
       navigator.clipboard.writeText(children as string)
       setCopied(true)
@@ -55,11 +38,12 @@ export default function CodeBlock({
     } catch (error) {
       console.error('Failed to copy to clipboard', error)
     }
-  }, [children])
+  }
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const run = useCallback(async () => {
+  const run = async () => {
+    console.log('run')
     if (!children?.toString()) {
       toast({
         title: 'No SQL query provided',
@@ -83,7 +67,19 @@ export default function CodeBlock({
     }
 
     setIsLoading(false)
-  }, [children, setSqlResult])
+  }
+
+  if (
+    language !== 'sql' &&
+    typeof children === 'string' &&
+    children.length < 40
+  ) {
+    return (
+      <span className="bg-[#121211] text-[#f8f8f2] inline-block p-1 rounded-sm font-mono">
+        {children}
+      </span>
+    )
+  }
 
   return (
     <div className="flex flex-col my-3 gap-2">
@@ -125,3 +121,5 @@ export default function CodeBlock({
     </div>
   )
 }
+
+export default memo(CodeBlock)

@@ -9,6 +9,15 @@ import TextSkeleton from './text-skeleton'
 import Markdown from 'react-markdown'
 import CodeBlock from './code-block'
 import type { QueryResult } from 'pg'
+import remarkGfm from 'remark-gfm'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 const toolCallToNameText = {
   getExplainForQuery: 'Getting query plan...',
@@ -33,7 +42,6 @@ export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
       api: '/api/chat',
-      keepLastMessageOnError: true,
       headers: {
         'x-connection-string': value.connectionString,
         'x-openai-api-key': value.openaiApiKey,
@@ -51,7 +59,7 @@ export default function Chat() {
     const toolInvocation = messages[messages.length - 1]?.toolInvocations
 
     return (toolInvocation ?? []).filter((tool) => tool.state === 'call')
-  }, [isLoading, messages])
+  }, [messages])
 
   // New state to manage SQL results
   const [sqlResults, setSqlResults] = useState<{
@@ -96,6 +104,7 @@ export default function Chat() {
                 className="mb-2 text-primary"
               >
                 <Markdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     code: ({ className, children }) => {
                       const language = className?.includes('sql')
@@ -137,6 +146,14 @@ export default function Chat() {
                     h6: ({ children }) => (
                       <h6 className="text-xs font-normal my-1">{children}</h6>
                     ),
+                    table: ({ children }) => <Table>{children}</Table>,
+                    thead: ({ children }) => (
+                      <TableHeader>{children}</TableHeader>
+                    ),
+                    tbody: ({ children }) => <TableBody>{children}</TableBody>,
+                    tr: ({ children }) => <TableRow>{children}</TableRow>,
+                    th: ({ children }) => <TableHead>{children}</TableHead>,
+                    td: ({ children }) => <TableCell>{children}</TableCell>,
                   }}
                 >
                   {m.content}

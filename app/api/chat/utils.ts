@@ -263,3 +263,4 @@ export async function getForeignKeyConstraints(connectionString: string) {
     return `Error fetching foreign key constraints: ${error}`
   }
 }
+
