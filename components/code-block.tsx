@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Copy } from 'lucide-react'
-import { useState, memo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { runSql } from '@/actions/run-sql'
@@ -129,4 +129,4 @@ function CodeBlock({
   )
 }
 
-export default memo(CodeBlock)
+export default CodeBlock

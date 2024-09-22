@@ -115,9 +115,14 @@ export default function Chat() {
                           // when Is generating text don't run sql
                           isDisabled={isLoading}
                           language={language}
-                          sqlResult={sqlResults[m.id]}
+                          sqlResult={
+                            sqlResults[`${children?.toString()}_${m.id}`]
+                          }
                           setSqlResult={(result) =>
-                            handleSetSqlResult(m.id, result)
+                            handleSetSqlResult(
+                              `${children?.toString()}_${m.id}`,
+                              result
+                            )
                           }
                         >
                           {children}
