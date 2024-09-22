@@ -74,15 +74,13 @@ export const DataTable = <TValue,>({
                 data-state={row.getIsSelected() && 'selected'}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    style={{
-                      width: Math.min(cell.column.getSize(), 100),
-                      minWidth: `100px`,
-                    }}
-                    className="max-h-9"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  <TableCell key={cell.id}>
+                    <div className="max-h-9 overflow-hidden">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </div>
                   </TableCell>
                 ))}
               </TableRow>
