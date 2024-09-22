@@ -12,20 +12,25 @@ const argv = require('yargs')
     alias: 'p',
     description: 'Port to run the server on',
     type: 'number',
-    default: 5005
+    default: 5005,
   })
-  .help()
-  .argv
+  .help().argv
 
 const port = argv.port
-const isWin = process.platform === 'win32'
-const nextBinary = isWin ? 'next.cmd' : 'next'
-const nextPath = path.resolve(__dirname, '../node_modules/.bin', nextBinary)
+
+// TODO review if this is needed
+// const isWin = process.platform === 'win32'
+// const nextBinary = isWin ? 'next.cmd' : 'next'
+// const nextPath = path.resolve(__dirname, '../node_modules/.bin', nextBinary)
+const appDir = path.join(__dirname, '..')
 
 console.log(chalk.cyan(`Starting the app on port ${port}...`))
 
 // Start the Next.js app
-const child = exec(`"${nextPath}" start -p ${port}`, { stdio: 'inherit' })
+const child = exec(`npx next start -p ${port}`, {
+  stdio: 'inherit',
+  cwd: appDir,
+})
 
 child.stdout.on('data', (data) => {
   console.log(chalk.green(data.toString()))

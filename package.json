@@ -1,15 +1,16 @@
 {
-  "name": "chat-with-your-base",
+  "name": "chat-with-your-database",
   "version": "1.0.0",
   "private": false,
   "bin": {
-    "chat-with-your-base": "bin/cli.js"
+    "chat-with-your-database": "bin/cli.js"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "publish-cli": "next build && npm publish",
+    "prepublishOnly": "pnpm run build",
+    "publish-cli": "pnpm run build && npm publish",
     "postinstall": "next build"
   },
   "dependencies": {
