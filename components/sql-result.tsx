@@ -8,7 +8,7 @@ export default function SqlResult({
 }: {
   result: QueryResult<unknown[]> | string
 }) {
-  if (typeof result === 'object') {
+  if (typeof result === 'object' && 'fields' in result && 'rows' in result) {
     const headers = result.fields.map((field) => ({
       header: field.name,
       accessorKey: field.name,
@@ -29,5 +29,5 @@ export default function SqlResult({
     return <DataTable columns={headers} data={processedRows} />
   }
 
-  return <pre>{result}</pre>
+  return <pre>{JSON.stringify(result, null, 2)}</pre>
 }
