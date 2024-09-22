@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Copy } from 'lucide-react'
-import { useState, memo } from 'react'
+import { useState, memo, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { runSql } from '@/actions/run-sql'
@@ -10,6 +10,9 @@ import { toast } from '@/hooks/use-toast'
 import { useAppState } from '../hooks/use-app-state'
 import type { QueryResult } from 'pg'
 import SqlResult from './sql-result'
+import Prism from 'prismjs'
+import 'prismjs/components/prism-sql'
+import 'prismjs/themes/prism-okaidia.css'
 
 function CodeBlock({
   children,
@@ -24,6 +27,10 @@ function CodeBlock({
   setSqlResult: (result: QueryResult<unknown[]> | string) => void
   isDisabled?: boolean
 }) {
+  useEffect(() => {
+    Prism.highlightAll()
+  }, [])
+
   const { value } = useAppState()
 
   const [copied, setCopied] = useState(false)

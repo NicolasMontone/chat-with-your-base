@@ -146,7 +146,11 @@ export default function Chat() {
                     h6: ({ children }) => (
                       <h6 className="text-xs font-normal my-1">{children}</h6>
                     ),
-                    table: ({ children }) => <Table>{children}</Table>,
+                    table: ({ children }) => (
+                      <div className="my-3">
+                        <Table>{children}</Table>
+                      </div>
+                    ),
                     thead: ({ children }) => (
                       <TableHeader>{children}</TableHeader>
                     ),
