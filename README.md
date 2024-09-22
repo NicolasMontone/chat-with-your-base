@@ -39,3 +39,13 @@ pnpm run dev
 #### Run SQL
 
 ![Run SQL](/run-sql.png)
+
+### This project uses:
+- [Supabase](https://supabase.com/) for the database and auth
+- [Next.js](https://nextjs.org/) for the framework
+- [Vercel](https://vercel.com/) for the deployment
+- [OpenAI](https://openai.com/) for the AI
+- [Geist](https://geist.sh/) for the UI
+- [Tailwind](https://tailwindcss.com/) for the CSS
+- [Shadcn](https://ui.shadcn.com/) for the UI
+- [Aceternity](https://aceternity.com/) for the UI
