@@ -87,7 +87,7 @@ export default function Chat() {
         return (
           <div key={m.id}>
             {m.role === 'user' ? (
-              <div className="text-2xl text-primary font-semibold">
+              <div className="text-xl text-primary font-semibold">
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
