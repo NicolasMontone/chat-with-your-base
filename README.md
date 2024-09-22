@@ -25,3 +25,13 @@ pnpm install
 ```bash
 pnpm run dev
 ```
+
+### It let's you:
+
+#### Get statistics about your database
+
+![Get statistics about your database](/stats.png)
+
+#### Ask it to generate SQL
+
+![Ask it to generate SQL and run it](/query.mov)
