@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { runSql } from '@/actions/run-sql'
 import { toast } from '@/hooks/use-toast'
 
-import { useAppState } from '../hooks/use-app-state'
 import type { QueryResult } from 'pg'
 import SqlResult from './sql-result'
 import Prism from 'prismjs'
@@ -20,18 +19,18 @@ function CodeBlock({
   sqlResult,
   setSqlResult,
   isDisabled,
+  connectionString,
 }: {
   children: React.ReactNode
   language?: string
   sqlResult?: QueryResult<unknown[]> | string
   setSqlResult: (result: QueryResult<unknown[]> | string) => void
   isDisabled?: boolean
+  connectionString: string
 }) {
   useEffect(() => {
     Prism.highlightAll()
   }, [])
-
-  const { value } = useAppState()
 
   const [copied, setCopied] = useState(false)
 
@@ -63,7 +62,7 @@ function CodeBlock({
     const sqlFunctionBinded = runSql.bind(
       null,
       children?.toString(),
-      value.connectionString
+      connectionString
     )
     const result = await sqlFunctionBinded()
     try {

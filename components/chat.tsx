@@ -112,6 +112,7 @@ export default function Chat() {
                         : 'markup'
                       return (
                         <CodeBlock
+                          connectionString={value.connectionString}
                           // when Is generating text don't run sql
                           isDisabled={isLoading}
                           language={language}
