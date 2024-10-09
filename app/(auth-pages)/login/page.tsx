@@ -35,7 +35,7 @@ export default function Login({
 
     const defaultUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000'
+      : `http://localhost:${process.env.PORT || 3000}`;
 
     const supabase = createClient()
 
