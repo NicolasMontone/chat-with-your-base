@@ -1,5 +1,6 @@
+'use client'
 import React from 'react'
-
+import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 
 type SpotlightProps = {
@@ -8,10 +9,15 @@ type SpotlightProps = {
 }
 
 export const Spotlight = ({ className, fill }: SpotlightProps) => {
+  const { theme } = useTheme()
+
+  const spotlightColor = theme === 'light' ? 'black' : (fill || 'white')
+  const spotlightOpacity = theme === 'light' ? '0.1' : '0.21'
+
   return (
     <svg
       className={cn(
-        'animate-spotlight pointer-events-none absolute z-[1]  h-[129%] w-[160%] opacity-0',
+        'animate-spotlight pointer-events-none absolute z-[1] h-[129%] w-[160%] opacity-0',
         className
       )}
       xmlns="http://www.w3.org/2000/svg"
@@ -25,8 +31,8 @@ export const Spotlight = ({ className, fill }: SpotlightProps) => {
           rx="1924.71"
           ry="273.501"
           transform="matrix(-0.822377 -0.568943 -0.568943 0.822377 3631.88 2291.09)"
-          fill={fill || 'white'}
-          fillOpacity="0.21"
+          fill={spotlightColor}
+          fillOpacity={spotlightOpacity}
         ></ellipse>
       </g>
       <defs>

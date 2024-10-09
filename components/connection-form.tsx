@@ -87,7 +87,8 @@ export function ConnectionForm({
         throw new Error(response)
       }
 
-      if (isCli) {
+      // Validate OpenAI API key if provided, regardless of CLI mode
+      if (openaiApiKey) {
         const openaiResponse = await validateOpenaiKey(openaiApiKey)
         if (openaiResponse !== 'Valid API key') {
           throw new Error('Invalid OpenAI API key')
@@ -150,7 +151,7 @@ export function ConnectionForm({
               <p className="text-red-500 text-sm">{errors.connectionString}</p>
             )}
           </div>
-          {isCli && (
+          {isCli ? (
             <>
               <div className="space-y-2 w-full">
                 <label htmlFor="openaiApiKey">OpenAI API Key</label>
@@ -184,6 +185,20 @@ export function ConnectionForm({
                 )}
               </div>
             </>
+          ) : (
+            <div className="space-y-2 w-full">
+              <label htmlFor="openaiApiKey">OpenAI API Key (Optional)</label>
+              <p className="text-sm text-gray-500">
+                You can use your personal API key for this project to have full control over your usage and billing.
+              </p>
+              <Input
+                id="openaiApiKey"
+                className="w-full"
+                placeholder="Enter your OpenAI API key (optional)"
+                value={openaiApiKey}
+                onChange={(e) => setOpenaiApiKey(e.target.value)}
+              />
+            </div>
           )}
 
           <div className="flex gap-4 mt-4">

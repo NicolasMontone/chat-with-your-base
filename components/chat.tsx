@@ -45,7 +45,6 @@ export default function Chat() {
       headers: {
         'x-connection-string': value.connectionString,
         'x-openai-api-key': value.openaiApiKey,
-        'x-model': value.model,
       },
       onFinish: scrollMessagesToBottom,
     })

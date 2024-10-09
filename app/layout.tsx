@@ -27,16 +27,12 @@ export default async function RootLayout({
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-screen overflow-hidden flex flex-col items-center max-w-full mx-auto">
-            <div className="h-screen w-full dark:bg-black bg-white  dark:bg-dot-white/[0.2] bg-dot-black/[0.2] relative flex items-center justify-center">
-              <div className="flex flex-col gap-20 max-w-5xl">{children}</div>
-              <ThemeSwitcher />
-            </div>
-          </main>
+          {children}
+          <ThemeSwitcher />
           <CliIndicator />
           <TailwindIndicator />
           <Toaster />
