@@ -13,7 +13,7 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: 'Chat with your database',
+  title: 'Chat With Your Database',
   description: 'The AI that really knows your postgres DB',
 }
 
