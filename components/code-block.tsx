@@ -8,7 +8,7 @@ import { runSql } from '@/actions/run-sql'
 import { toast } from '@/hooks/use-toast'
 import { DynamicChart } from '@/components/dynamic-chart'
 import { generateChartConfig } from '@/actions/chart'
-import type { Config, Result } from '@/actions/chart'
+import type { Config, Result } from '@/lib/chart'
 
 import type { QueryResult } from 'pg'
 import SqlResult from './sql-result'
