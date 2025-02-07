@@ -153,16 +153,18 @@ function CodeBlock({
           <SqlResult result={sqlResult} />
           {typeof sqlResult !== 'string' && sqlResult.rows?.length > 0 && (
             <>
-              <Button
-                size={'sm'}
-                variant={'outline'}
-                onClick={handleShowChart}
-                disabled={isChartLoading}
-                className="flex items-center gap-2"
-              >
-                <BarChart3 className="w-4 h-4" />
-                {showChart ? 'Hide Chart' : 'Show Chart'}
-              </Button>
+              {!showChart && (
+                <Button
+                  size={'sm'}
+                  variant={'outline'}
+                  onClick={handleShowChart}
+                  disabled={isChartLoading}
+                  className="flex items-center gap-2"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Show Chart
+                </Button>
+              )}
               {showChart && chartConfig && (
                 <div className="mt-4">
                   <DynamicChart
