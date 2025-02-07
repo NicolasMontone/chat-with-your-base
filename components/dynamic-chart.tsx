@@ -233,7 +233,7 @@ export function DynamicChart({
           {renderChart()}
         </ChartContainer>
       )}
-      <div className="w-full">
+      <div className="w-full text-wrap">
         <p className="mt-4 text-sm">{chartConfig.description}</p>
         <p className="mt-4 text-sm">{chartConfig.takeaway}</p>
       </div>
