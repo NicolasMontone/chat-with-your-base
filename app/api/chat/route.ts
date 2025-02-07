@@ -37,11 +37,13 @@ export async function POST(req: Request) {
   const projectOpenaiApiKey = process.env.OPENAI_API_KEY
 
   const openai = createOpenAI({
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     apiKey: isCli ? openaiApiKey! : projectOpenaiApiKey!,
   })
 
   const result = await streamText({
     // todo remove any we already validate the filed
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     model: isCli ? openai(model as any) : openai('gpt-4o-mini'),
     messages: convertToCoreMessages(messages),
     system: `
