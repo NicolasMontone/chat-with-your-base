@@ -15,6 +15,7 @@ export const validateDbConnection = async (
     await client.end()
   } catch (error) {
     if (error instanceof Error) {
+      console.log('error', error)
       return error.message
     }
     return 'Unknown error'

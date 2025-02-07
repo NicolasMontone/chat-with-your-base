@@ -1,6 +1,6 @@
 'use client'
 
-import { Message, useChat } from 'ai/react'
+import { type Message, useChat } from 'ai/react'
 import { useAppState } from '@/hooks/use-app-state'
 import { useRef, useCallback, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -191,7 +191,7 @@ export default function Chat() {
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{
                 duration: 1.5,
-                repeat: Infinity,
+                repeat: Number.POSITIVE_INFINITY,
                 ease: 'easeInOut',
               }}
               className="text-primary font-semibold mt-2"

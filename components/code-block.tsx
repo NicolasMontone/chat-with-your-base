@@ -1,17 +1,32 @@
 'use client'
 
-import { Check, Copy } from 'lucide-react'
+import { Check, Copy, BarChart3 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { runSql } from '@/actions/run-sql'
 import { toast } from '@/hooks/use-toast'
+import { DynamicChart } from '@/components/dynamic-chart'
+import { generateChartConfig } from '@/actions/chart'
+import type { Config, Result } from '@/lib/chart'
 
 import type { QueryResult } from 'pg'
 import SqlResult from './sql-result'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
 import 'prismjs/themes/prism-okaidia.css'
+
+const convertToResult = (rows: unknown[]): Result[] => {
+  return rows.map((row) => {
+    if (typeof row === 'object' && row !== null) {
+      return Object.entries(row).reduce((acc, [key, value]) => {
+        acc[key] = value as string | number
+        return acc
+      }, {} as Result)
+    }
+    throw new Error('Invalid row data')
+  })
+}
 
 function CodeBlock({
   children,
@@ -33,6 +48,9 @@ function CodeBlock({
   }, [])
 
   const [copied, setCopied] = useState(false)
+  const [showChart, setShowChart] = useState(false)
+  const [chartConfig, setChartConfig] = useState<Config | null>(null)
+  const [isChartLoading, setIsChartLoading] = useState(false)
 
   const copyToClipboard = async () => {
     try {
@@ -49,7 +67,6 @@ function CodeBlock({
   const [isLoading, setIsLoading] = useState(false)
 
   const run = async () => {
-    console.log('run')
     if (!children?.toString()) {
       toast({
         title: 'No SQL query provided',
@@ -67,12 +84,34 @@ function CodeBlock({
     const result = await sqlFunctionBinded()
     try {
       const parsedResult = JSON.parse(result)
-      setSqlResult && setSqlResult(parsedResult)
+      setSqlResult?.(parsedResult)
     } catch {
-      setSqlResult && setSqlResult(result)
+      setSqlResult?.(result)
     }
 
     setIsLoading(false)
+  }
+
+  const handleShowChart = async () => {
+    if (!sqlResult || typeof sqlResult === 'string') return
+
+    setIsChartLoading(true)
+    try {
+      const rows = convertToResult(sqlResult.rows)
+      const { config } = await generateChartConfig(
+        rows,
+        children?.toString() || ''
+      )
+      setChartConfig(config)
+      setShowChart(true)
+    } catch (error) {
+      toast({
+        title: 'Error generating chart',
+        description: 'Could not generate a chart for this data',
+        variant: 'destructive',
+      })
+    }
+    setIsChartLoading(false)
   }
 
   if (
@@ -110,7 +149,33 @@ function CodeBlock({
       {isLoading ? (
         <div className="w-full h-32 bg-primary opacity-20 rounded-md animate-pulse" />
       ) : sqlResult ? (
-        <SqlResult result={sqlResult} />
+        <>
+          <SqlResult result={sqlResult} />
+          {typeof sqlResult !== 'string' && sqlResult.rows?.length > 0 && (
+            <>
+              {!showChart && (
+                <Button
+                  size={'sm'}
+                  variant={'outline'}
+                  onClick={handleShowChart}
+                  disabled={isChartLoading}
+                  className="flex items-center gap-2"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Show Chart
+                </Button>
+              )}
+              {showChart && chartConfig && (
+                <div className="mt-4">
+                  <DynamicChart
+                    chartData={convertToResult(sqlResult.rows)}
+                    chartConfig={chartConfig}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </>
       ) : null}
 
       {language === 'sql' && (
