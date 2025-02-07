@@ -31,6 +31,19 @@ export const generateChartConfig = async (
         legend: true
       }
 
+      Here's another example for scatter plot:
+      export const scatterConfig = {
+        type: "scatter",
+        xKey: "revenue",       // Numeric x-axis value
+        yKeys: ["profit"],     // Numeric y-axis value(s)
+        colors: {
+          profit: "#2196F3"    // Blue for profit points
+        },
+        legend: true,
+        description: "Scatter plot showing relationship between revenue and profit",
+        takeaway: "There is a positive correlation between revenue and profit"
+      }
+
       User Query:
       ${userQuery}
 

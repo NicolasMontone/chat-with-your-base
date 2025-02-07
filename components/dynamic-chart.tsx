@@ -14,6 +14,8 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
+  ScatterChart,
+  Scatter,
 } from 'recharts'
 import {
   ChartContainer,
@@ -203,6 +205,39 @@ export function DynamicChart({
             <ChartTooltip content={<ChartTooltipContent />} />
             {chartConfig.legend && <Legend />}
           </PieChart>
+        )
+      case 'scatter':
+        return (
+          <ScatterChart>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey={chartConfig.xKey}>
+              <Label
+                value={toTitleCase(chartConfig.xKey)}
+                offset={0}
+                position="insideBottom"
+              />
+            </XAxis>
+            <YAxis>
+              <Label
+                value={toTitleCase(chartConfig.yKeys[0])}
+                angle={-90}
+                position="insideLeft"
+              />
+            </YAxis>
+            <ChartTooltip content={<ChartTooltipContent />} />
+            {chartConfig.legend && <Legend />}
+            {chartConfig.yKeys.map((key: string, index: number) => (
+              <Scatter
+                key={key}
+                name={toTitleCase(key)}
+                data={chartData}
+                fill={colors[index % colors.length]}
+                line={false}
+                shape="circle"
+                dataKey={key}
+              />
+            ))}
+          </ScatterChart>
         )
       default:
         return <div>Unsupported chart type: {chartConfig.type}</div>
