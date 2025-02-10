@@ -1,6 +1,6 @@
 'use client'
 
-import { type Message, useChat } from 'ai/react'
+import { type Message, useChat } from '@ai-sdk/react'
 import { useAppState } from '@/hooks/use-app-state'
 import { useRef, useCallback, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -47,6 +47,7 @@ export default function Chat() {
         'x-openai-api-key': value.openaiApiKey,
       },
       onFinish: scrollMessagesToBottom,
+      streamProtocol: 'data',
     })
 
   const showSkeleton = useMemo(() => {
@@ -80,9 +81,7 @@ export default function Chat() {
       ref={messagesChat}
       className="h-screen overflow-auto sm:min-w-[70%] sm:w-[1000px] sm:max-w-[840px] relative sm:p-28 sm:pt-0 p-12 pt-0 min-w-[90%]"
     >
-      {messages?.map((m: Message) => {
-        if (m.toolInvocations) return null
-
+      {messages.map((m) => {
         return (
           <div key={m.id}>
             {m.role === 'user' ? (
@@ -102,71 +101,176 @@ export default function Chat() {
                 transition={{ duration: 0.75 }}
                 className="mb-2 text-primary"
               >
-                <Markdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code: ({ className, children }) => {
-                      const language = className?.includes('sql')
-                        ? 'sql'
-                        : 'markup'
-                      return (
-                        <CodeBlock
-                          connectionString={value.connectionString}
-                          // when Is generating text don't run sql
-                          isDisabled={isLoading}
-                          language={language}
-                          sqlResult={
-                            sqlResults[`${children?.toString()}_${m.id}`]
-                          }
-                          setSqlResult={(result) =>
-                            handleSetSqlResult(
-                              `${children?.toString()}_${m.id}`,
-                              result
+                {m.parts ? (
+                  m.parts.map((part, index) => {
+                    if (part.type === 'tool-invocation') {
+                      return null // Skip tool invocations
+                    }
+
+                    const content = 'text' in part ? part.text : part.reasoning
+
+                    return (
+                      <Markdown
+                        key={`${m.id}-part-${index}`}
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code: ({ className, children }) => {
+                            const language = className?.includes('sql')
+                              ? 'sql'
+                              : 'markup'
+                            return (
+                              <CodeBlock
+                                connectionString={value.connectionString}
+                                isDisabled={isLoading}
+                                language={language}
+                                sqlResult={
+                                  sqlResults[`${children?.toString()}_${m.id}`]
+                                }
+                                setSqlResult={(result) =>
+                                  handleSetSqlResult(
+                                    `${children?.toString()}_${m.id}`,
+                                    result
+                                  )
+                                }
+                              >
+                                {children}
+                              </CodeBlock>
                             )
-                          }
-                        >
+                          },
+                          li: ({ children }) => (
+                            <li className="my-1">{children}</li>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc pl-4 my-1">{children}</ul>
+                          ),
+                          h1: ({ children }) => (
+                            <h1 className="text-2xl font-bold my-2">
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="text-xl font-semibold my-1">
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-lg font-medium my-1">
+                              {children}
+                            </h3>
+                          ),
+                          h4: ({ children }) => (
+                            <h4 className="text-base font-normal my-1">
+                              {children}
+                            </h4>
+                          ),
+                          h5: ({ children }) => (
+                            <h5 className="text-sm font-normal my-1">
+                              {children}
+                            </h5>
+                          ),
+                          h6: ({ children }) => (
+                            <h6 className="text-xs font-normal my-1">
+                              {children}
+                            </h6>
+                          ),
+                          table: ({ children }) => (
+                            <div className="my-3">
+                              <Table>{children}</Table>
+                            </div>
+                          ),
+                          thead: ({ children }) => (
+                            <TableHeader>{children}</TableHeader>
+                          ),
+                          tbody: ({ children }) => (
+                            <TableBody>{children}</TableBody>
+                          ),
+                          tr: ({ children }) => <TableRow>{children}</TableRow>,
+                          th: ({ children }) => (
+                            <TableHead>{children}</TableHead>
+                          ),
+                          td: ({ children }) => (
+                            <TableCell>{children}</TableCell>
+                          ),
+                        }}
+                      >
+                        {content}
+                      </Markdown>
+                    )
+                  })
+                ) : (
+                  <Markdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code: ({ className, children }) => {
+                        const language = className?.includes('sql')
+                          ? 'sql'
+                          : 'markup'
+                        return (
+                          <CodeBlock
+                            connectionString={value.connectionString}
+                            isDisabled={isLoading}
+                            language={language}
+                            sqlResult={
+                              sqlResults[`${children?.toString()}_${m.id}`]
+                            }
+                            setSqlResult={(result) =>
+                              handleSetSqlResult(
+                                `${children?.toString()}_${m.id}`,
+                                result
+                              )
+                            }
+                          >
+                            {children}
+                          </CodeBlock>
+                        )
+                      },
+                      li: ({ children }) => (
+                        <li className="my-1">{children}</li>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc pl-4 my-1">{children}</ul>
+                      ),
+                      h1: ({ children }) => (
+                        <h1 className="text-2xl font-bold my-2">{children}</h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="text-xl font-semibold my-1">
                           {children}
-                        </CodeBlock>
-                      )
-                    },
-                    li: ({ children }) => <li className="my-1">{children}</li>,
-                    ul: ({ children }) => (
-                      <ul className="list-disc pl-4 my-1">{children}</ul>
-                    ),
-                    h1: ({ children }) => (
-                      <h1 className="text-2xl font-bold my-2">{children}</h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-xl font-semibold my-1">{children}</h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-lg font-medium my-1">{children}</h3>
-                    ),
-                    h4: ({ children }) => (
-                      <h4 className="text-base font-normal my-1">{children}</h4>
-                    ),
-                    h5: ({ children }) => (
-                      <h5 className="text-sm font-normal my-1">{children}</h5>
-                    ),
-                    h6: ({ children }) => (
-                      <h6 className="text-xs font-normal my-1">{children}</h6>
-                    ),
-                    table: ({ children }) => (
-                      <div className="my-3">
-                        <Table>{children}</Table>
-                      </div>
-                    ),
-                    thead: ({ children }) => (
-                      <TableHeader>{children}</TableHeader>
-                    ),
-                    tbody: ({ children }) => <TableBody>{children}</TableBody>,
-                    tr: ({ children }) => <TableRow>{children}</TableRow>,
-                    th: ({ children }) => <TableHead>{children}</TableHead>,
-                    td: ({ children }) => <TableCell>{children}</TableCell>,
-                  }}
-                >
-                  {m.content}
-                </Markdown>
+                        </h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="text-lg font-medium my-1">{children}</h3>
+                      ),
+                      h4: ({ children }) => (
+                        <h4 className="text-base font-normal my-1">
+                          {children}
+                        </h4>
+                      ),
+                      h5: ({ children }) => (
+                        <h5 className="text-sm font-normal my-1">{children}</h5>
+                      ),
+                      h6: ({ children }) => (
+                        <h6 className="text-xs font-normal my-1">{children}</h6>
+                      ),
+                      table: ({ children }) => (
+                        <div className="my-3">
+                          <Table>{children}</Table>
+                        </div>
+                      ),
+                      thead: ({ children }) => (
+                        <TableHeader>{children}</TableHeader>
+                      ),
+                      tbody: ({ children }) => (
+                        <TableBody>{children}</TableBody>
+                      ),
+                      tr: ({ children }) => <TableRow>{children}</TableRow>,
+                      th: ({ children }) => <TableHead>{children}</TableHead>,
+                      td: ({ children }) => <TableCell>{children}</TableCell>,
+                    }}
+                  >
+                    {m.content}
+                  </Markdown>
+                )}
               </motion.span>
             )}
             <br />
