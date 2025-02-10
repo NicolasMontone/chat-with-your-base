@@ -22,10 +22,19 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useState } from 'react'
 import { Label } from 'recharts'
 import { transformDataForMultiLineChart } from '@/lib/rechart-format'
 import type { Config, Result } from '@/lib/chart'
+
+const chartTypes = ['bar', 'line', 'area', 'pie', 'scatter'] as const
 
 function toTitleCase(str: string): string {
   return str
@@ -46,11 +55,17 @@ const colors = [
 
 export function DynamicChart({
   chartData,
-  chartConfig,
+  chartConfig: initialConfig,
 }: {
   chartData: Result[]
   chartConfig: Config
 }) {
+  const [chartConfig, setChartConfig] = useState<Config>(initialConfig)
+
+  const handleChartTypeChange = (type: (typeof chartTypes)[number]) => {
+    setChartConfig((prev) => ({ ...prev, type }))
+  }
+
   const renderChart = () => {
     if (!chartData || !chartConfig) return <div>No chart data</div>
     const parsedChartData = chartData.map((item) => {
@@ -61,8 +76,6 @@ export function DynamicChart({
       }
       return parsedItem
     })
-
-    chartData = parsedChartData
 
     const processChartData = (data: Result[], chartType: string) => {
       if (chartType === 'bar' || chartType === 'pie') {
@@ -76,12 +89,12 @@ export function DynamicChart({
       return data
     }
 
-    chartData = processChartData(chartData, chartConfig.type)
+    const processedData = processChartData(parsedChartData, chartConfig.type)
 
     switch (chartConfig.type) {
       case 'bar':
         return (
-          <BarChart data={chartData}>
+          <BarChart data={processedData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={chartConfig.xKey}>
               <Label
@@ -110,7 +123,7 @@ export function DynamicChart({
         )
       case 'line': {
         const { data, xAxisField, lineFields } = transformDataForMultiLineChart(
-          chartData,
+          processedData,
           chartConfig
         )
         const useTransformedData =
@@ -118,9 +131,8 @@ export function DynamicChart({
           chartConfig.measurementColumn &&
           chartConfig.yKeys.includes(chartConfig.measurementColumn)
 
-        // const useTransformedData = false;
         return (
-          <LineChart data={useTransformedData ? data : chartData}>
+          <LineChart data={useTransformedData ? data : processedData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey={useTransformedData ? chartConfig.xKey : chartConfig.xKey}
@@ -164,7 +176,7 @@ export function DynamicChart({
       }
       case 'area':
         return (
-          <AreaChart data={chartData}>
+          <AreaChart data={processedData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={chartConfig.xKey} />
             <YAxis />
@@ -185,19 +197,16 @@ export function DynamicChart({
         return (
           <PieChart>
             <Pie
-              data={chartData}
+              data={processedData}
               dataKey={chartConfig.yKeys[0]}
               nameKey={chartConfig.xKey}
               cx="50%"
               cy="50%"
               outerRadius={120}
             >
-              {chartData.map((_, index) => (
+              {processedData.map((_, index) => (
                 <Cell
-                  key={`cell-${
-                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                    index
-                  }`}
+                  key={`cell-${index}`}
                   fill={colors[index % colors.length]}
                 />
               ))}
@@ -230,7 +239,7 @@ export function DynamicChart({
               <Scatter
                 key={key}
                 name={toTitleCase(key)}
-                data={chartData}
+                data={processedData}
                 fill={colors[index % colors.length]}
                 line={false}
                 shape="circle"
@@ -246,7 +255,24 @@ export function DynamicChart({
 
   return (
     <div className="w-full flex flex-col justify-center items-center">
-      <h2 className="text-lg font-bold mb-2">{chartConfig.title}</h2>
+      <div className="w-full flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">{chartConfig.title}</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Chart Type:</span>
+          <Select value={chartConfig.type} onValueChange={handleChartTypeChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select chart type" />
+            </SelectTrigger>
+            <SelectContent>
+              {chartTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {toTitleCase(type)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       {chartConfig && chartData.length > 0 && (
         <ChartContainer
           config={chartConfig.yKeys.reduce(
