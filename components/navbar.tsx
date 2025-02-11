@@ -8,6 +8,7 @@ import type { User } from '@supabase/supabase-js'
 import { useIsMounted } from '@/hooks/use-is-mounted'
 import { AnimatePresence } from 'motion/react'
 import { useAppState } from '@/hooks/use-app-state'
+import { SidebarTrigger } from './ui/sidebar'
 
 export default function Navbar({ user }: { user: User }) {
   const { value, setValue } = useAppState()
@@ -17,7 +18,9 @@ export default function Navbar({ user }: { user: User }) {
 
   return (
     <AnimatePresence>
-      <nav className="w-full p-4 flex items-center justify-end fixed left-0 top-0 z-10">
+      <nav className="w-full p-4 flex items-center justify-between">
+        <SidebarTrigger />
+
         {user ? (
           <div className="flex items-center gap-2">
             <p className="text-sm">Hello, {user.email}</p>

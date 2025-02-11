@@ -26,9 +26,7 @@ export default function ChatInterface() {
   return (
     <AnimatePresence>
       {shouldShowChat ? (
-        <div className="flex flex-col gap-4 pt-32 h-screen max-h-screen scroll-auto">
-          <Chat />
-        </div>
+        <Chat />
       ) : (
         <ConnectionForm setConnectionString={setValue} />
       )}

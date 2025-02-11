@@ -71,7 +71,7 @@ export default function Chat({
       onFinish: () => {
         scrollMessagesToBottom()
       },
-      onResponse: () => {
+      onResponse: async () => {
         if (typeof window !== 'undefined') {
           if (isNewChat) {
             console.log('here')
@@ -124,10 +124,7 @@ export default function Chat({
   )
 
   return (
-    <div
-      ref={messagesChat}
-      className="h-screen overflow-auto sm:min-w-[70%] sm:w-[1000px] sm:max-w-[840px] relative sm:p-28 sm:pt-0 p-12 pt-0 min-w-[90%]"
-    >
+    <div ref={messagesChat}>
       {messages.map((m) => {
         return (
           <div key={m.id}>

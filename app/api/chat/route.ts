@@ -5,7 +5,6 @@ import {
   tool,
   smoothStream,
   appendResponseMessages,
-  generateText,
 } from 'ai'
 import { headers } from 'next/headers'
 import { z } from 'zod'
@@ -34,7 +33,7 @@ export async function POST(req: Request) {
 
   const { messages, id } = await req.json()
   console.log('Request payload:', { id, messageCount: messages?.length })
-  
+
   const headers_ = await headers()
   const connectionString = headers_.get('x-connection-string')
   const openaiApiKey = headers_.get('x-openai-api-key')
@@ -44,7 +43,7 @@ export async function POST(req: Request) {
     console.log('Bad request: No id provided')
     return new Response('No id provided', { status: 400 })
   }
-  
+
   const idParsed = z.string().uuid().safeParse(id)
   if (!idParsed.success) {
     console.log('Bad request: Invalid UUID format', id)
@@ -65,7 +64,10 @@ export async function POST(req: Request) {
 
   // is chat from user
   if (chat && chat.user_id !== user.id) {
-    console.log('Unauthorized: Chat belongs to different user', { chatUserId: chat.user_id, requestUserId: user.id })
+    console.log('Unauthorized: Chat belongs to different user', {
+      chatUserId: chat.user_id,
+      requestUserId: user.id,
+    })
     return new Response('Unauthorized', { status: 401 })
   }
 
@@ -238,19 +240,26 @@ export async function POST(req: Request) {
             .eq('id', id)
         } else {
           console.log('Creating new chat:', id)
-          const generatedName = await generateText({
-            model: openai('gpt-4o-mini'),
-            system: `
-        You are an assistant that creates short, concise, and descriptive chat names for a PostgreSQL chatbot. The chat name should directly capture the essence of the conversation and be relevant to PostgreSQL topics. Your response must be only the title text with no extra words, labels, or prefixes (do not include "Title:" or similar).
-          `,
-            prompt: `The messages are <MESSAGES>${JSON.stringify(
-              appendResponseMessages({
-                messages,
-                responseMessages: response.messages,
-              })
-            )}</MESSAGES>`,
-          })
-          console.log('Generated chat name:', generatedName.text)
+          //   const generatedName = await generateText({
+          //     model: openai('gpt-4o-mini'),
+          //     system: `
+          // You are an assistant that creates short, concise, and descriptive chat names for a PostgreSQL chatbot. The chat name should directly capture the essence of the conversation and be relevant to PostgreSQL topics. Your response must be only the title text with no extra words, labels, or prefixes (do not include "Title:" or similar).
+          //   `,
+          //     prompt: `The messages are <MESSAGES>${JSON.stringify(
+          //       appendResponseMessages({
+          //         messages,
+          //         responseMessages: response.messages,
+          //       })
+          //     )}</MESSAGES>`,
+          //   })
+          //   console.log('Generated chat name:', generatedName.text)
+
+          const { count } = await client
+            .from('chats')
+            .select('*', { count: 'exact' })
+            .eq('user_id', user.id)
+
+          const name = `Chat ${count ?? 0 + 1}`
 
           await client.from('chats').insert({
             id,
@@ -261,7 +270,7 @@ export async function POST(req: Request) {
                 responseMessages: response.messages,
               })
             ),
-            name: generatedName.text,
+            name,
             created_at: new Date().toISOString(),
           })
         }
