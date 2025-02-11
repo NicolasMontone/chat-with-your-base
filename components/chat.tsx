@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table'
 import { useToast } from '../hooks/use-toast'
 import { v4 } from 'uuid'
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
 
 const toolCallToNameText = {
   getExplainForQuery: 'Getting query plan...',
@@ -39,28 +40,10 @@ export default function Chat({
 }) {
   const { toast } = useToast()
   const messagesChat = useRef<HTMLDivElement | null>(null)
-
-  const scrollMessagesToBottom = useCallback(() => {
-    if (!messagesChat.current) return
-
-    messagesChat.current.scrollTop = messagesChat.current.scrollHeight
-  }, [])
-
   const { value } = useAppState()
-
   const [id, setId] = useState(initialId)
-
   const [isNewChat, setIsNewChat] = useState(false)
-
-  useEffect(() => {
-    if (!initialId) {
-      const id = v4()
-
-      setId(id)
-      setIsNewChat(true)
-    }
-  }, [initialId])
-
+  
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
       api: '/api/chat',
@@ -74,7 +57,6 @@ export default function Chat({
       onResponse: async () => {
         if (typeof window !== 'undefined') {
           if (isNewChat) {
-            console.log('here')
             setIsNewChat(false)
             try {
               window.history.pushState({}, '', `/app/${id}`)
@@ -97,15 +79,56 @@ export default function Chat({
       },
     })
 
+  // Add virtualization
+  const rowVirtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => messagesChat.current,
+    estimateSize: () => 100,
+    overscan: 5
+  })
+
+  // Optimize scroll behavior with RAF
+  const scrollMessagesToBottom = useCallback(() => {
+    if (!messagesChat.current) return
+    
+    requestAnimationFrame(() => {
+      messagesChat.current?.scrollTo({
+        top: messagesChat.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!initialId) {
+      const id = v4()
+
+      setId(id)
+      setIsNewChat(true)
+    }
+  }, [initialId])
+
+  // Cleanup SQL results when component unmounts
+  useEffect(() => {
+    return () => {
+      setSqlResults({})
+    }
+  }, [])
+
+  // Memoize expensive computations
   const showSkeleton = useMemo(() => {
+    if (!messages.length) return false
     const lastMessageIsUser = messages[messages.length - 1]?.role === 'user'
     return isLoading && lastMessageIsUser
   }, [isLoading, messages])
 
-  const toolsLoading = useMemo(() => {
-    const toolInvocation = messages[messages.length - 1]?.toolInvocations
-
-    return (toolInvocation ?? []).filter((tool) => tool.state === 'call')
+  // Batch message updates
+  const [batchedMessages, setBatchedMessages] = useState<Message[]>([])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setBatchedMessages(messages)
+    }, 100)
+    return () => clearTimeout(timer)
   }, [messages])
 
   // New state to manage SQL results
@@ -123,207 +146,232 @@ export default function Chat({
     []
   )
 
+  const toolsLoading = useMemo(() => {
+    const toolInvocation = messages[messages.length - 1]?.toolInvocations
+
+    return (toolInvocation ?? []).filter((tool) => tool.state === 'call')
+  }, [messages])
+
   return (
-    <div ref={messagesChat}>
-      {messages.map((m) => {
-        return (
-          <div key={m.id}>
-            {m.role === 'user' ? (
-              <div className="text-xl text-primary font-semibold">
+    <div ref={messagesChat} className="h-full overflow-auto">
+      <div
+        style={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {rowVirtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
+          const message = messages[virtualRow.index]
+          return (
+            <div
+              key={message.id}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {message.role === 'user' ? (
+                <div className="text-xl text-primary font-semibold">
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {message.content}
+                  </motion.span>
+                </div>
+              ) : (
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.75 }}
+                  className="mb-2 text-primary"
                 >
-                  {m.content}
-                </motion.span>
-              </div>
-            ) : (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.75 }}
-                className="mb-2 text-primary"
-              >
-                {m.parts ? (
-                  m.parts.map((part, index) => {
-                    if (part.type === 'tool-invocation') {
-                      return null // Skip tool invocations
-                    }
+                  {message.parts ? (
+                    message.parts.map((part, index) => {
+                      if (part.type === 'tool-invocation') {
+                        return null // Skip tool invocations
+                      }
 
-                    const content = 'text' in part ? part.text : part.reasoning
+                      const content = 'text' in part ? part.text : part.reasoning
 
-                    return (
-                      <Markdown
-                        key={`${m.id}-part-${index}`}
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          code: ({ className, children }) => {
-                            const language = className?.includes('sql')
-                              ? 'sql'
-                              : 'markup'
-                            return (
-                              <CodeBlock
-                                connectionString={value.connectionString}
-                                isDisabled={isLoading}
-                                language={language}
-                                sqlResult={
-                                  sqlResults[`${children?.toString()}_${m.id}`]
-                                }
-                                setSqlResult={(result) =>
-                                  handleSetSqlResult(
-                                    `${children?.toString()}_${m.id}`,
-                                    result
-                                  )
-                                }
-                              >
-                                {children}
-                              </CodeBlock>
-                            )
-                          },
-                          li: ({ children }) => (
-                            <li className="my-1">{children}</li>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="list-disc pl-4 my-1">{children}</ul>
-                          ),
-                          h1: ({ children }) => (
-                            <h1 className="text-2xl font-bold my-2">
-                              {children}
-                            </h1>
-                          ),
-                          h2: ({ children }) => (
-                            <h2 className="text-xl font-semibold my-1">
-                              {children}
-                            </h2>
-                          ),
-                          h3: ({ children }) => (
-                            <h3 className="text-lg font-medium my-1">
-                              {children}
-                            </h3>
-                          ),
-                          h4: ({ children }) => (
-                            <h4 className="text-base font-normal my-1">
-                              {children}
-                            </h4>
-                          ),
-                          h5: ({ children }) => (
-                            <h5 className="text-sm font-normal my-1">
-                              {children}
-                            </h5>
-                          ),
-                          h6: ({ children }) => (
-                            <h6 className="text-xs font-normal my-1">
-                              {children}
-                            </h6>
-                          ),
-                          table: ({ children }) => (
-                            <div className="my-3">
-                              <Table>{children}</Table>
-                            </div>
-                          ),
-                          thead: ({ children }) => (
-                            <TableHeader>{children}</TableHeader>
-                          ),
-                          tbody: ({ children }) => (
-                            <TableBody>{children}</TableBody>
-                          ),
-                          tr: ({ children }) => <TableRow>{children}</TableRow>,
-                          th: ({ children }) => (
-                            <TableHead>{children}</TableHead>
-                          ),
-                          td: ({ children }) => (
-                            <TableCell>{children}</TableCell>
-                          ),
-                        }}
-                      >
-                        {content}
-                      </Markdown>
-                    )
-                  })
-                ) : (
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code: ({ className, children }) => {
-                        const language = className?.includes('sql')
-                          ? 'sql'
-                          : 'markup'
-                        return (
-                          <CodeBlock
-                            connectionString={value.connectionString}
-                            isDisabled={isLoading}
-                            language={language}
-                            sqlResult={
-                              sqlResults[`${children?.toString()}_${m.id}`]
-                            }
-                            setSqlResult={(result) =>
-                              handleSetSqlResult(
-                                `${children?.toString()}_${m.id}`,
-                                result
+                      return (
+                        <Markdown
+                          key={`${message.id}-part-${index}`}
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code: ({ className, children }) => {
+                              const language = className?.includes('sql')
+                                ? 'sql'
+                                : 'markup'
+                              return (
+                                <CodeBlock
+                                  connectionString={value.connectionString}
+                                  isDisabled={isLoading}
+                                  language={language}
+                                  sqlResult={
+                                    sqlResults[`${children?.toString()}_${message.id}`]
+                                  }
+                                  setSqlResult={(result) =>
+                                    handleSetSqlResult(
+                                      `${children?.toString()}_${message.id}`,
+                                      result
+                                    )
+                                  }
+                                >
+                                  {children}
+                                </CodeBlock>
                               )
-                            }
-                          >
+                            },
+                            li: ({ children }) => (
+                              <li className="my-1">{children}</li>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="list-disc pl-4 my-1">{children}</ul>
+                            ),
+                            h1: ({ children }) => (
+                              <h1 className="text-2xl font-bold my-2">
+                                {children}
+                              </h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className="text-xl font-semibold my-1">
+                                {children}
+                              </h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className="text-lg font-medium my-1">
+                                {children}
+                              </h3>
+                            ),
+                            h4: ({ children }) => (
+                              <h4 className="text-base font-normal my-1">
+                                {children}
+                              </h4>
+                            ),
+                            h5: ({ children }) => (
+                              <h5 className="text-sm font-normal my-1">
+                                {children}
+                              </h5>
+                            ),
+                            h6: ({ children }) => (
+                              <h6 className="text-xs font-normal my-1">
+                                {children}
+                              </h6>
+                            ),
+                            table: ({ children }) => (
+                              <div className="my-3">
+                                <Table>{children}</Table>
+                              </div>
+                            ),
+                            thead: ({ children }) => (
+                              <TableHeader>{children}</TableHeader>
+                            ),
+                            tbody: ({ children }) => (
+                              <TableBody>{children}</TableBody>
+                            ),
+                            tr: ({ children }) => <TableRow>{children}</TableRow>,
+                            th: ({ children }) => (
+                              <TableHead>{children}</TableHead>
+                            ),
+                            td: ({ children }) => (
+                              <TableCell>{children}</TableCell>
+                            ),
+                          }}
+                        >
+                          {content}
+                        </Markdown>
+                      )
+                    })
+                  ) : (
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code: ({ className, children }) => {
+                          const language = className?.includes('sql')
+                            ? 'sql'
+                            : 'markup'
+                          return (
+                            <CodeBlock
+                              connectionString={value.connectionString}
+                              isDisabled={isLoading}
+                              language={language}
+                              sqlResult={
+                                sqlResults[`${children?.toString()}_${message.id}`]
+                              }
+                              setSqlResult={(result) =>
+                                handleSetSqlResult(
+                                  `${children?.toString()}_${message.id}`,
+                                  result
+                                )
+                              }
+                            >
+                              {children}
+                            </CodeBlock>
+                          )
+                        },
+                        li: ({ children }) => (
+                          <li className="my-1">{children}</li>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc pl-4 my-1">{children}</ul>
+                        ),
+                        h1: ({ children }) => (
+                          <h1 className="text-2xl font-bold my-2">{children}</h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-xl font-semibold my-1">
                             {children}
-                          </CodeBlock>
-                        )
-                      },
-                      li: ({ children }) => (
-                        <li className="my-1">{children}</li>
-                      ),
-                      ul: ({ children }) => (
-                        <ul className="list-disc pl-4 my-1">{children}</ul>
-                      ),
-                      h1: ({ children }) => (
-                        <h1 className="text-2xl font-bold my-2">{children}</h1>
-                      ),
-                      h2: ({ children }) => (
-                        <h2 className="text-xl font-semibold my-1">
-                          {children}
-                        </h2>
-                      ),
-                      h3: ({ children }) => (
-                        <h3 className="text-lg font-medium my-1">{children}</h3>
-                      ),
-                      h4: ({ children }) => (
-                        <h4 className="text-base font-normal my-1">
-                          {children}
-                        </h4>
-                      ),
-                      h5: ({ children }) => (
-                        <h5 className="text-sm font-normal my-1">{children}</h5>
-                      ),
-                      h6: ({ children }) => (
-                        <h6 className="text-xs font-normal my-1">{children}</h6>
-                      ),
-                      table: ({ children }) => (
-                        <div className="my-3">
-                          <Table>{children}</Table>
-                        </div>
-                      ),
-                      thead: ({ children }) => (
-                        <TableHeader>{children}</TableHeader>
-                      ),
-                      tbody: ({ children }) => (
-                        <TableBody>{children}</TableBody>
-                      ),
-                      tr: ({ children }) => <TableRow>{children}</TableRow>,
-                      th: ({ children }) => <TableHead>{children}</TableHead>,
-                      td: ({ children }) => <TableCell>{children}</TableCell>,
-                    }}
-                  >
-                    {m.content}
-                  </Markdown>
-                )}
-              </motion.span>
-            )}
-            <br />
-            {m.role === 'assistant' && !m.toolInvocations && (
-              <hr className="my-4" />
-            )}
-          </div>
-        )
-      })}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-lg font-medium my-1">{children}</h3>
+                        ),
+                        h4: ({ children }) => (
+                          <h4 className="text-base font-normal my-1">
+                            {children}
+                          </h4>
+                        ),
+                        h5: ({ children }) => (
+                          <h5 className="text-sm font-normal my-1">{children}</h5>
+                        ),
+                        h6: ({ children }) => (
+                          <h6 className="text-xs font-normal my-1">{children}</h6>
+                        ),
+                        table: ({ children }) => (
+                          <div className="my-3">
+                            <Table>{children}</Table>
+                          </div>
+                        ),
+                        thead: ({ children }) => (
+                          <TableHeader>{children}</TableHeader>
+                        ),
+                        tbody: ({ children }) => (
+                          <TableBody>{children}</TableBody>
+                        ),
+                        tr: ({ children }) => <TableRow>{children}</TableRow>,
+                        th: ({ children }) => <TableHead>{children}</TableHead>,
+                        td: ({ children }) => <TableCell>{children}</TableCell>,
+                      }}
+                    >
+                      {message.content}
+                    </Markdown>
+                  )}
+                </motion.span>
+              )}
+              <br />
+              {message.role === 'assistant' && !message.toolInvocations && (
+                <hr className="my-4" />
+              )}
+            </div>
+          )
+        })}
+      </div>
       {(showSkeleton || toolsLoading.length > 0) && <TextSkeleton />}
       {toolsLoading.map((tool) => {
         const aiRunningText =
