@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/table'
 import { useToast } from '../hooks/use-toast'
 import { v4 } from 'uuid'
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
 import Navbar from './navbar'
 import { User } from '@supabase/supabase-js'
 
@@ -82,21 +81,6 @@ export default function Chat({
         })
       },
     })
-
-  // Add virtualization
-  const rowVirtualizer = useVirtualizer({
-    count: messages.length,
-    getScrollElement: () => messagesChat.current,
-    estimateSize: (index) => {
-      const message = messages[index]
-      // If the message contains SQL results with a chart, allocate more space
-      if (message.id in sqlResults) {
-        return 800 // Increased height for messages with charts
-      }
-      return 100 // Default height for regular messages
-    },
-    overscan: 5,
-  })
 
   // Optimize scroll behavior with RAF
   const scrollMessagesToBottom = useCallback(() => {
@@ -161,145 +145,44 @@ export default function Chat({
         <div className="container mx-auto max-w-4xl h-full">
           <div className="px-4 py-6">
             <div className="w-full space-y-12">
-              {rowVirtualizer
-                .getVirtualItems()
-                .map((virtualRow: VirtualItem) => {
-                  const message = messages[virtualRow.index]
-                  return (
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full"
+                >
+                  {message.role === 'user' ? (
                     <motion.div
-                      key={message.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
-                      className="w-full"
+                      className="text-2xl font-bold text-primary mb-6 border-b pb-2"
                     >
-                      {message.role === 'user' ? (
+                      {message.content}
+                    </motion.div>
+                  ) : (
+                    <>
+                      {message.parts && message.parts.length > 0 && (
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                          className="text-2xl font-bold text-primary mb-6 border-b pb-2"
+                          transition={{ duration: 0.4 }}
+                          className="text-base prose prose-neutral dark:prose-invert max-w-none"
                         >
-                          {message.content}
-                        </motion.div>
-                      ) : (
-                        <>
-                          {message.parts && message.parts.length > 0 && (
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ duration: 0.4 }}
-                              className="text-base prose prose-neutral dark:prose-invert max-w-none"
-                            >
-                              {message.parts ? (
-                                message.parts.map((part, index) => {
-                                  if (part.type === 'tool-invocation') {
-                                    return null
-                                  }
+                          {message.parts ? (
+                            message.parts.map((part, index) => {
+                              if (part.type === 'tool-invocation') {
+                                return null
+                              }
 
-                                  const content =
-                                    'text' in part ? part.text : part.reasoning
+                              const content =
+                                'text' in part ? part.text : part.reasoning
 
-                                  return (
-                                    <Markdown
-                                      key={`${message.id}-part-${index}`}
-                                      remarkPlugins={[remarkGfm]}
-                                      components={{
-                                        code: ({ className, children }) => {
-                                          const language = className?.includes(
-                                            'sql'
-                                          )
-                                            ? 'sql'
-                                            : 'markup'
-                                          return (
-                                            <CodeBlock
-                                              connectionString={
-                                                value.connectionString
-                                              }
-                                              isDisabled={isLoading}
-                                              language={language}
-                                              sqlResult={
-                                                sqlResults[
-                                                  `${children?.toString()}_${message.id}`
-                                                ]
-                                              }
-                                              setSqlResult={(result) =>
-                                                handleSetSqlResult(
-                                                  `${children?.toString()}_${message.id}`,
-                                                  result
-                                                )
-                                              }
-                                            >
-                                              {children}
-                                            </CodeBlock>
-                                          )
-                                        },
-                                        li: ({ children }) => (
-                                          <li className="my-1">{children}</li>
-                                        ),
-                                        ul: ({ children }) => (
-                                          <ul className="list-disc pl-4 my-1">
-                                            {children}
-                                          </ul>
-                                        ),
-                                        h1: ({ children }) => (
-                                          <h1 className="text-2xl font-bold my-2">
-                                            {children}
-                                          </h1>
-                                        ),
-                                        h2: ({ children }) => (
-                                          <h2 className="text-xl font-semibold my-1">
-                                            {children}
-                                          </h2>
-                                        ),
-                                        h3: ({ children }) => (
-                                          <h3 className="text-lg font-medium my-1">
-                                            {children}
-                                          </h3>
-                                        ),
-                                        h4: ({ children }) => (
-                                          <h4 className="text-base font-normal my-1">
-                                            {children}
-                                          </h4>
-                                        ),
-                                        h5: ({ children }) => (
-                                          <h5 className="text-sm font-normal my-1">
-                                            {children}
-                                          </h5>
-                                        ),
-                                        h6: ({ children }) => (
-                                          <h6 className="text-xs font-normal my-1">
-                                            {children}
-                                          </h6>
-                                        ),
-                                        table: ({ children }) => (
-                                          <div className="my-3">
-                                            <Table>{children}</Table>
-                                          </div>
-                                        ),
-                                        thead: ({ children }) => (
-                                          <TableHeader>{children}</TableHeader>
-                                        ),
-                                        tbody: ({ children }) => (
-                                          <TableBody>{children}</TableBody>
-                                        ),
-                                        tr: ({ children }) => (
-                                          <TableRow>{children}</TableRow>
-                                        ),
-                                        th: ({ children }) => (
-                                          <TableHead>{children}</TableHead>
-                                        ),
-                                        td: ({ children }) => (
-                                          <TableCell>{children}</TableCell>
-                                        ),
-                                      }}
-                                    >
-                                      {content}
-                                    </Markdown>
-                                  )
-                                })
-                              ) : (
+                              return (
                                 <Markdown
+                                  key={`${message.id}-part-${index}`}
                                   remarkPlugins={[remarkGfm]}
                                   components={{
                                     code: ({ className, children }) => {
@@ -391,52 +274,148 @@ export default function Chat({
                                     ),
                                   }}
                                 >
-                                  {message.content}
+                                  {content}
                                 </Markdown>
-                              )}
-                            </motion.div>
-                          )}
-                          {(showSkeleton || toolsLoading.length > 0) &&
-                            virtualRow.index === messages.length - 1 && (
-                              <div className="mt-6">
-                                <TextSkeleton />
-                                {toolsLoading.map((tool) => {
-                                  const aiRunningText =
-                                    toolCallToNameText[
-                                      tool.toolName as keyof typeof toolCallToNameText
-                                    ] ?? ''
-
-                                  return (
-                                    aiRunningText && (
-                                      <motion.div
-                                        key={tool.toolCallId}
-                                        initial={{ opacity: 0.5 }}
-                                        animate={{ opacity: [0.5, 1, 0.5] }}
-                                        transition={{
-                                          duration: 1.5,
-                                          repeat: Number.POSITIVE_INFINITY,
-                                          ease: 'easeInOut',
-                                        }}
-                                        className="text-primary/70 font-medium mt-2"
-                                      >
-                                        <p>{aiRunningText}</p>
-                                      </motion.div>
-                                    )
+                              )
+                            })
+                          ) : (
+                            <Markdown
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                code: ({ className, children }) => {
+                                  const language = className?.includes(
+                                    'sql'
                                   )
-                                })}
-                              </div>
-                            )}
-                        </>
+                                    ? 'sql'
+                                    : 'markup'
+                                  return (
+                                    <CodeBlock
+                                      connectionString={
+                                        value.connectionString
+                                      }
+                                      isDisabled={isLoading}
+                                      language={language}
+                                      sqlResult={
+                                        sqlResults[
+                                          `${children?.toString()}_${message.id}`
+                                        ]
+                                      }
+                                      setSqlResult={(result) =>
+                                        handleSetSqlResult(
+                                          `${children?.toString()}_${message.id}`,
+                                          result
+                                        )
+                                      }
+                                    >
+                                      {children}
+                                    </CodeBlock>
+                                  )
+                                },
+                                li: ({ children }) => (
+                                  <li className="my-1">{children}</li>
+                                ),
+                                ul: ({ children }) => (
+                                  <ul className="list-disc pl-4 my-1">
+                                    {children}
+                                  </ul>
+                                ),
+                                h1: ({ children }) => (
+                                  <h1 className="text-2xl font-bold my-2">
+                                    {children}
+                                  </h1>
+                                ),
+                                h2: ({ children }) => (
+                                  <h2 className="text-xl font-semibold my-1">
+                                    {children}
+                                  </h2>
+                                ),
+                                h3: ({ children }) => (
+                                  <h3 className="text-lg font-medium my-1">
+                                    {children}
+                                  </h3>
+                                ),
+                                h4: ({ children }) => (
+                                  <h4 className="text-base font-normal my-1">
+                                    {children}
+                                  </h4>
+                                ),
+                                h5: ({ children }) => (
+                                  <h5 className="text-sm font-normal my-1">
+                                    {children}
+                                  </h5>
+                                ),
+                                h6: ({ children }) => (
+                                  <h6 className="text-xs font-normal my-1">
+                                    {children}
+                                  </h6>
+                                ),
+                                table: ({ children }) => (
+                                  <div className="my-3">
+                                    <Table>{children}</Table>
+                                  </div>
+                                ),
+                                thead: ({ children }) => (
+                                  <TableHeader>{children}</TableHeader>
+                                ),
+                                tbody: ({ children }) => (
+                                  <TableBody>{children}</TableBody>
+                                ),
+                                tr: ({ children }) => (
+                                  <TableRow>{children}</TableRow>
+                                ),
+                                th: ({ children }) => (
+                                  <TableHead>{children}</TableHead>
+                                ),
+                                td: ({ children }) => (
+                                  <TableCell>{children}</TableCell>
+                                ),
+                              }}
+                            >
+                              {message.content}
+                            </Markdown>
+                          )}
+                        </motion.div>
                       )}
-                    </motion.div>
-                  )
-                })}
+                      {(showSkeleton || toolsLoading.length > 0) &&
+                        message.id === messages[messages.length - 1].id && (
+                          <div className="mt-6">
+                            <TextSkeleton />
+                            {toolsLoading.map((tool) => {
+                              const aiRunningText =
+                                toolCallToNameText[
+                                  tool.toolName as keyof typeof toolCallToNameText
+                                ] ?? ''
+
+                              return (
+                                aiRunningText && (
+                                  <motion.div
+                                    key={tool.toolCallId}
+                                    initial={{ opacity: 0.5 }}
+                                    animate={{ opacity: [0.5, 1, 0.5] }}
+                                    transition={{
+                                      duration: 1.5,
+                                      repeat: Number.POSITIVE_INFINITY,
+                                      ease: 'easeInOut',
+                                    }}
+                                    className="text-primary/70 font-medium mt-2"
+                                  >
+                                    <p>{aiRunningText}</p>
+                                  </motion.div>
+                                )
+                              )
+                            })}
+                          </div>
+                        )}
+                    </>
+                  )}
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-none border-t bg-background/95">
+      <div className="flex-none border-t bg-sidebar">
         <div className="container max-w-4xl mx-auto p-4">
           <Form
             onChange={handleInputChange}
