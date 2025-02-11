@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { headers } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { SubmitButton } from '@/components/submit-button'
@@ -18,11 +17,12 @@ const formSchema = z.object({
   email: z.string().email(),
 })
 
-export default function Login({
+export default async function Login({
   searchParams,
 }: {
-  searchParams: { message: string; errorMessage: string }
+  searchParams: Promise<{ message: string; errorMessage: string }>
 }) {
+  const params = await searchParams
   const login = async (formData: FormData) => {
     'use server'
 
@@ -104,13 +104,13 @@ export default function Login({
               <SubmitButton formAction={login} pendingText="Signing In...">
                 Login
               </SubmitButton>
-              {(searchParams?.message || searchParams?.errorMessage) && (
+              {(params?.message || params?.errorMessage) && (
                 <p
                   className={`mt-4 p-1 text-center ${
-                    searchParams.errorMessage ? 'text-red-500' : ''
+                    params.errorMessage ? 'text-red-500' : ''
                   }`}
                 >
-                  {searchParams.message || searchParams.errorMessage}
+                  {params.message || params.errorMessage}
                 </p>
               )}
             </form>

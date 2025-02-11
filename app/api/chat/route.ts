@@ -5,6 +5,7 @@ import {
   tool,
   smoothStream,
   appendResponseMessages,
+  generateText,
 } from 'ai'
 import { headers } from 'next/headers'
 import { z } from 'zod'
@@ -22,7 +23,6 @@ import { createClient } from '@/utils/supabase/server'
 export const maxDuration = 30
 
 export async function POST(req: Request) {
-  console.log('Starting POST request handler')
   const client = await createClient()
   const { data } = await client.auth.getUser()
   const user = data.user
@@ -240,26 +240,32 @@ export async function POST(req: Request) {
             .eq('id', id)
         } else {
           console.log('Creating new chat:', id)
-          //   const generatedName = await generateText({
-          //     model: openai('gpt-4o-mini'),
-          //     system: `
-          // You are an assistant that creates short, concise, and descriptive chat names for a PostgreSQL chatbot. The chat name should directly capture the essence of the conversation and be relevant to PostgreSQL topics. Your response must be only the title text with no extra words, labels, or prefixes (do not include "Title:" or similar).
-          //   `,
-          //     prompt: `The messages are <MESSAGES>${JSON.stringify(
-          //       appendResponseMessages({
-          //         messages,
-          //         responseMessages: response.messages,
-          //       })
-          //     )}</MESSAGES>`,
-          //   })
-          //   console.log('Generated chat name:', generatedName.text)
+          const generatedName = await generateText({
+            model: openai('gpt-4o-mini'),
+            system: `
+You are an assistant that generates short, concise, descriptive chat names for a PostgreSQL chatbot. 
+The name must:
+• Capture the essence of the conversation in one sentence.
+• Be relevant to PostgreSQL topics.
+• Contain no extra words, labels, or prefixes such as "Title:" or "Chat:".
+• Not include quotation marks or the word "Chat" anywhere.
 
-          const { count } = await client
-            .from('chats')
-            .select('*', { count: 'exact' })
-            .eq('user_id', user.id)
+Example of a good name: Counting users
+Example of a good name: Counting users in the last 30 days
 
-          const name = `Chat ${count ?? 0 + 1}`
+Example of a bad name: Chat about PostgreSQL: Counting users
+Example of a bad name: "Counting users"
+
+Your response should be the title text only, nothing else.
+          
+            `,
+            prompt: `The messages are <MESSAGES>${JSON.stringify(
+              appendResponseMessages({
+                messages,
+                responseMessages: response.messages,
+              })
+            )}</MESSAGES>`,
+          })
 
           await client.from('chats').insert({
             id,
@@ -270,7 +276,7 @@ export async function POST(req: Request) {
                 responseMessages: response.messages,
               })
             ),
-            name,
+            name: generatedName.text,
             created_at: new Date().toISOString(),
           })
         }
