@@ -27,8 +27,6 @@ export default async function ProtectedPage({
     .eq('user_id', user.id)
     .single()
 
-  console.log(chat?.messages)
-
   return (
     <ChatInterface
       user={user}

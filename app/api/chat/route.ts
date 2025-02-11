@@ -260,10 +260,7 @@ Your response should be the title text only, nothing else.
           
             `,
             prompt: `The messages are <MESSAGES>${JSON.stringify(
-              appendResponseMessages({
-                messages,
-                responseMessages: response.messages,
-              })
+              messages
             )}</MESSAGES>`,
           })
 
