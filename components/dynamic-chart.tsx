@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Label } from 'recharts'
 import { transformDataForMultiLineChart } from '@/lib/rechart-format'
 import type { Config, Result } from '@/lib/chart'
@@ -253,51 +253,56 @@ export function DynamicChart({
     }
   }
 
-  return (
-    <div className="w-full flex flex-col justify-center items-center">
-      <div className="w-full flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">{chartConfig.title}</h2>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Chart Type:</span>
-          <Select value={chartConfig.type} onValueChange={handleChartTypeChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select chart type" />
-            </SelectTrigger>
-            <SelectContent>
-              {chartTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {toTitleCase(type)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+  // Memoize the chart rendering to prevent unnecessary re-renders during scrolling
+  const memoizedChart = useMemo(() => {
+    return (
+      <div className="w-full flex flex-col justify-center items-center">
+        <div className="w-full flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">{chartConfig.title}</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Chart Type:</span>
+            <Select value={chartConfig.type} onValueChange={handleChartTypeChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select chart type" />
+              </SelectTrigger>
+              <SelectContent>
+                {chartTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {toTitleCase(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {chartConfig && chartData.length > 0 && (
+          <ChartContainer
+            config={chartConfig.yKeys.reduce(
+              (
+                acc: { [key: string]: { label: string; color: string } },
+                key: string,
+                index: number
+              ) => {
+                acc[key] = {
+                  label: key,
+                  color: colors[index % colors.length],
+                }
+                return acc
+              },
+              {} as Record<string, { label: string; color: string }>
+            )}
+            className="h-[320px] w-full"
+          >
+            {renderChart()}
+          </ChartContainer>
+        )}
+        <div className="w-full text-wrap">
+          <p className="mt-4 text-sm">{chartConfig.description}</p>
+          <p className="mt-4 text-sm">{chartConfig.takeaway}</p>
         </div>
       </div>
-      {chartConfig && chartData.length > 0 && (
-        <ChartContainer
-          config={chartConfig.yKeys.reduce(
-            (
-              acc: { [key: string]: { label: string; color: string } },
-              key: string,
-              index: number
-            ) => {
-              acc[key] = {
-                label: key,
-                color: colors[index % colors.length],
-              }
-              return acc
-            },
-            {} as Record<string, { label: string; color: string }>
-          )}
-          className="h-[320px] w-full"
-        >
-          {renderChart()}
-        </ChartContainer>
-      )}
-      <div className="w-full text-wrap">
-        <p className="mt-4 text-sm">{chartConfig.description}</p>
-        <p className="mt-4 text-sm">{chartConfig.takeaway}</p>
-      </div>
-    </div>
-  )
+    )
+  }, [chartConfig, chartData, handleChartTypeChange, renderChart])
+
+  return memoizedChart
 }

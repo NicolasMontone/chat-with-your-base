@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
-import Navbar from '@/components/navbar'
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+
+import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { redirect } from 'next/navigation'
 
@@ -19,15 +19,7 @@ export default async function Layout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="min-h-screen overflow-hidden flex flex-col items-center max-w-full mx-auto w-full">
-        <div className="h-screen w-full dark:bg-black bg-white  bg-background relative flex items-center justify-center">
-          <div className="flex flex-col gap-20 w-full h-full">
-            <Navbar user={data.user} />
-
-            {children}
-          </div>
-        </div>
-      </main>
+      <main className="flex h-screen w-full">{children}</main>
     </SidebarProvider>
   )
 }
