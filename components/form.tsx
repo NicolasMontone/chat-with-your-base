@@ -3,7 +3,7 @@
 import React, { useCallback, useRef, useState } from 'react'
 
 import { FlipWords } from './flipping-words'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useWindowSize } from 'usehooks-ts'
 import { Textarea } from '@/components/ui/textarea'
 

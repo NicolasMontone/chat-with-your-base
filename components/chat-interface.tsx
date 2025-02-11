@@ -4,10 +4,10 @@ import { useAppState } from '@/hooks/use-app-state'
 import Chat from './chat'
 import ConnectionForm from './connection-form'
 import { useIsMounted } from '@/hooks/use-is-mounted'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'motion/react'
 import { useMemo } from 'react'
 
-export default function ChatInterface({ isCli }: { isCli: boolean }) {
+export default function ChatInterface() {
   const isMounted = useIsMounted()
   const { value, setValue } = useAppState()
 
@@ -15,17 +15,9 @@ export default function ChatInterface({ isCli }: { isCli: boolean }) {
     if (!isMounted) {
       return false
     }
-    if (isCli) {
-      return !!value.connectionString && !!value.openaiApiKey
-    }
+
     return !!value.connectionString
-  }, [
-    isMounted,
-    value.connectionString,
-    value.openaiApiKey,
-    value.model,
-    isCli,
-  ])
+  }, [isMounted, value.connectionString, value.openaiApiKey, value.model])
 
   if (!isMounted) {
     return null
@@ -38,7 +30,7 @@ export default function ChatInterface({ isCli }: { isCli: boolean }) {
           <Chat />
         </div>
       ) : (
-        <ConnectionForm setConnectionString={setValue} isCli={isCli} />
+        <ConnectionForm setConnectionString={setValue} />
       )}
     </AnimatePresence>
   )

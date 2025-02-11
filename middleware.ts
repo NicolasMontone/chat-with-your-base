@@ -1,20 +1,7 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
-const isCli = process.env.IS_CLI === 'true'
-
 export async function middleware(request: NextRequest) {
-  const pathsToRedirectInCli = ['/login', '/']
-
-  if (isCli) {
-    // This is done to prevent using supabase in cli mode
-    if (pathsToRedirectInCli.includes(request.nextUrl.pathname)) {
-      return NextResponse.redirect(new URL('/app', request.url))
-    }
-
-    return NextResponse.next()
-  }
-
   return await updateSession(request)
 }
 

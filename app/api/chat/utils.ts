@@ -1,8 +1,4 @@
-import { generateObject } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
-
 import { Client as PGClient } from 'pg'
-import { z } from 'zod'
 
 export async function getPublicTablesWithColumns(connectionString: string) {
   const client = new PGClient(connectionString)

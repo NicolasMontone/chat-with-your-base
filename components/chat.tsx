@@ -1,9 +1,9 @@
 'use client'
 
-import { type Message, useChat } from '@ai-sdk/react'
+import { Message, useChat } from '@ai-sdk/react'
 import { useAppState } from '@/hooks/use-app-state'
-import { useRef, useCallback, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useRef, useCallback, useMemo, useState, useEffect } from 'react'
+import { motion } from 'motion/react'
 import { Form } from './form'
 import TextSkeleton from './text-skeleton'
 import Markdown from 'react-markdown'
@@ -18,6 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useToast } from '../hooks/use-toast'
+import { v4 } from 'uuid'
 
 const toolCallToNameText = {
   getExplainForQuery: 'Getting query plan...',
@@ -28,7 +30,14 @@ const toolCallToNameText = {
   getTableStats: 'Collecting table statistics...',
 }
 
-export default function Chat() {
+export default function Chat({
+  initialId,
+  initialMessages,
+}: {
+  initialId?: string
+  initialMessages?: Message[]
+}) {
+  const { toast } = useToast()
   const messagesChat = useRef<HTMLDivElement | null>(null)
 
   const scrollMessagesToBottom = useCallback(() => {
@@ -39,6 +48,19 @@ export default function Chat() {
 
   const { value } = useAppState()
 
+  const [id, setId] = useState(initialId)
+
+  const [isNewChat, setIsNewChat] = useState(false)
+
+  useEffect(() => {
+    if (!initialId) {
+      const id = v4()
+
+      setId(id)
+      setIsNewChat(true)
+    }
+  }, [initialId])
+
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
       api: '/api/chat',
@@ -46,8 +68,33 @@ export default function Chat() {
         'x-connection-string': value.connectionString,
         'x-openai-api-key': value.openaiApiKey,
       },
-      onFinish: scrollMessagesToBottom,
+      onFinish: () => {
+        scrollMessagesToBottom()
+      },
+      onResponse: () => {
+        if (typeof window !== 'undefined') {
+          if (isNewChat) {
+            console.log('here')
+            setIsNewChat(false)
+            try {
+              window.history.pushState({}, '', `/app/${id}`)
+            } catch (error) {
+              console.error('Error pushing state:', error)
+            }
+          }
+        }
+      },
       streamProtocol: 'data',
+      sendExtraMessageFields: true,
+      id,
+      initialMessages,
+      onError: (error) => {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        })
+      },
     })
 
   const showSkeleton = useMemo(() => {

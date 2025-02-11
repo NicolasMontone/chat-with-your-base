@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 
 export default function TextSkeleton({ maxRows = 3 }: { maxRows?: number }) {
   const fakeArray = Array.from({ length: maxRows }, (_, i) => i)

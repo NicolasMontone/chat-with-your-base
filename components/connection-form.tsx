@@ -15,18 +15,10 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useAppState } from '@/hooks/use-app-state'
 
 export function ConnectionForm({
   setConnectionString,
-  isCli,
 }: {
   setConnectionString: React.Dispatch<
     React.SetStateAction<{
@@ -35,7 +27,6 @@ export function ConnectionForm({
       model: string
     }>
   >
-  isCli: boolean
 }) {
   const { value } = useAppState()
   const [connectionString, setConnectionStringInput] = useState(
@@ -61,25 +52,6 @@ export function ConnectionForm({
       return
     }
 
-    if (isCli) {
-      if (!openaiApiKey) {
-        setErrors((prev) => ({
-          ...prev,
-          openaiApiKey: 'OpenAI API Key is required in CLI mode.',
-        }))
-      }
-      if (!model) {
-        setErrors((prev) => ({
-          ...prev,
-          model: 'Model is required in CLI mode.',
-        }))
-      }
-      if (!openaiApiKey || !model) {
-        setIsLoading(false)
-        return
-      }
-    }
-
     try {
       const response = await validateDbConnection(connectionString)
 
@@ -87,7 +59,7 @@ export function ConnectionForm({
         throw new Error(response)
       }
 
-      // Validate OpenAI API key if provided, regardless of CLI mode
+      // Validate OpenAI API key if provided
       if (openaiApiKey) {
         const openaiResponse = await validateOpenaiKey(openaiApiKey)
         if (openaiResponse !== 'Valid API key') {
@@ -151,55 +123,20 @@ export function ConnectionForm({
               <p className="text-red-500 text-sm">{errors.connectionString}</p>
             )}
           </div>
-          {isCli ? (
-            <>
-              <div className="space-y-2 w-full">
-                <label htmlFor="openaiApiKey">OpenAI API Key</label>
-                <Input
-                  id="openaiApiKey"
-                  className="w-full"
-                  placeholder="Enter your OpenAI API key"
-                  value={openaiApiKey}
-                  onChange={(e) => setOpenaiApiKey(e.target.value)}
-                />
-                {errors.openaiApiKey && (
-                  <p className="text-red-500 text-sm">{errors.openaiApiKey}</p>
-                )}
-              </div>
-              <div className="space-y-2 w-full">
-                <label htmlFor="model">Model</label>
-                <Select onValueChange={setModel} value={model}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gpt-4o-mini">GPT-4o-mini</SelectItem>
-                    <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                    <SelectItem value="o1-preview">
-                      O1 Preview {'(Recommended for complex queries)'}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.model && (
-                  <p className="text-red-500 text-sm">{errors.model}</p>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2 w-full">
-              <label htmlFor="openaiApiKey">OpenAI API Key (Optional)</label>
-              <p className="text-sm text-gray-500">
-                You can use your personal API key for this project to have full control over your usage and billing.
-              </p>
-              <Input
-                id="openaiApiKey"
-                className="w-full"
-                placeholder="Enter your OpenAI API key (optional)"
-                value={openaiApiKey}
-                onChange={(e) => setOpenaiApiKey(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="space-y-2 w-full">
+            <label htmlFor="openaiApiKey">OpenAI API Key (Optional)</label>
+            <p className="text-sm text-gray-500">
+              You can use your personal API key for this project to have full
+              control over your usage and billing.
+            </p>
+            <Input
+              id="openaiApiKey"
+              className="w-full"
+              placeholder="Enter your OpenAI API key (optional)"
+              value={openaiApiKey}
+              onChange={(e) => setOpenaiApiKey(e.target.value)}
+            />
+          </div>
 
           <div className="flex gap-4 mt-4">
             <Button type="submit" disabled={isLoading}>
