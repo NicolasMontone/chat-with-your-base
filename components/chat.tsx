@@ -1,8 +1,8 @@
 'use client'
 
-import { Message, useChat } from '@ai-sdk/react'
-import { useAppState } from '@/hooks/use-app-state'
-import { useRef, useCallback, useMemo, useState, useEffect } from 'react'
+import { useChat } from '@ai-sdk/react'
+import { useAppLocalStorage } from '@/hooks/use-app-state'
+import { useRef, useCallback, useMemo, useState, useEffect, memo } from 'react'
 import { motion } from 'motion/react'
 import { Form } from './form'
 import TextSkeleton from './text-skeleton'
@@ -19,9 +19,10 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useToast } from '../hooks/use-toast'
-import { v4 } from 'uuid'
 import Navbar from './navbar'
 import { User } from '@supabase/supabase-js'
+import { useAppState } from '../state'
+import { usePathname } from 'next/navigation'
 
 const toolCallToNameText = {
   getExplainForQuery: 'Getting query plan...',
@@ -32,20 +33,19 @@ const toolCallToNameText = {
   getTableStats: 'Collecting table statistics...',
 }
 
-export default function Chat({
+function ChatComponent({
   initialId,
-  initialMessages,
+
   user,
 }: {
   initialId?: string
-  initialMessages?: Message[]
   user: User
 }) {
+  const chat = useAppState((state) => state.chat)
+  const pathname = usePathname()
   const { toast } = useToast()
   const messagesChat = useRef<HTMLDivElement | null>(null)
-  const { value } = useAppState()
-  const [id, setId] = useState(initialId)
-  const [isNewChat, setIsNewChat] = useState(false)
+  const { value } = useAppLocalStorage()
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
@@ -57,22 +57,10 @@ export default function Chat({
       onFinish: () => {
         scrollMessagesToBottom()
       },
-      onResponse: async () => {
-        if (typeof window !== 'undefined') {
-          if (isNewChat) {
-            setIsNewChat(false)
-            try {
-              window.history.pushState({}, '', `/app/${id}`)
-            } catch (error) {
-              console.error('Error pushing state:', error)
-            }
-          }
-        }
-      },
       streamProtocol: 'data',
       sendExtraMessageFields: true,
-      id,
-      initialMessages,
+      id: initialId,
+      initialMessages: chat?.messages ?? [],
       onError: (error) => {
         toast({
           title: 'Error',
@@ -93,15 +81,6 @@ export default function Chat({
       })
     })
   }, [])
-
-  useEffect(() => {
-    if (!initialId) {
-      const id = v4()
-
-      setId(id)
-      setIsNewChat(true)
-    }
-  }, [initialId])
 
   // Cleanup SQL results when component unmounts
   useEffect(() => {
@@ -283,16 +262,12 @@ export default function Chat({
                               remarkPlugins={[remarkGfm]}
                               components={{
                                 code: ({ className, children }) => {
-                                  const language = className?.includes(
-                                    'sql'
-                                  )
+                                  const language = className?.includes('sql')
                                     ? 'sql'
                                     : 'markup'
                                   return (
                                     <CodeBlock
-                                      connectionString={
-                                        value.connectionString
-                                      }
+                                      connectionString={value.connectionString}
                                       isDisabled={isLoading}
                                       language={language}
                                       sqlResult={
@@ -421,6 +396,15 @@ export default function Chat({
             onChange={handleInputChange}
             value={input}
             onSubmit={(e) => {
+              if (typeof window !== 'undefined') {
+                if (pathname === '/app') {
+                  try {
+                    window.history.pushState({}, '', `/app/${initialId}`)
+                  } catch (error) {
+                    console.error('Error pushing state:', error)
+                  }
+                }
+              }
               handleSubmit(e)
               scrollMessagesToBottom()
             }}
@@ -430,3 +414,5 @@ export default function Chat({
     </div>
   )
 }
+
+export default ChatComponent

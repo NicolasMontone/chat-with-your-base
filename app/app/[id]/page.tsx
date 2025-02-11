@@ -27,13 +27,18 @@ export default async function ProtectedPage({
     .eq('user_id', user.id)
     .single()
 
+  if (!chat) {
+    return redirect('/app')
+  }
+
   return (
     <ChatInterface
       user={user}
-      initialId={id}
-      initialMessages={
-        JSON.parse((chat?.messages as string) || '[]') as Message[] | undefined
-      }
+      chat={{
+        id: chat.id,
+        name: chat.name,
+        messages: JSON.parse(chat.messages as string) as Message[],
+      }}
     />
   )
 }

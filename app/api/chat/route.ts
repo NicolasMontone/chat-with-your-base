@@ -18,6 +18,7 @@ import {
   getTableStats,
 } from './utils'
 import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30
@@ -278,6 +279,7 @@ Your response should be the title text only, nothing else.
           })
         }
         console.log('Database update completed successfully')
+        revalidatePath('/app')
       } catch (error) {
         console.error('Error updating database:', error)
       }

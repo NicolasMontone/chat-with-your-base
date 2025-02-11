@@ -16,6 +16,7 @@ import { redirect } from 'next/navigation'
 import { SidebarLink } from './sidebar-link'
 import { Button } from './ui/button'
 import { Link } from 'next-view-transitions'
+import { NewChatSidebar } from './new-chat-sidebar'
 
 async function Items() {
   const client = await createClient()
@@ -97,7 +98,7 @@ async function Items() {
       {filteredItems?.map((item) => (
         <SidebarMenuItem key={item.title}>
           <SidebarGroupLabel>
-            <h3 className="textLg font-medium p-1 text-foreground">
+            <h3 className="text-lg font-medium p-1 text-foreground">
               {item.title}
             </h3>
           </SidebarGroupLabel>
@@ -230,15 +231,11 @@ export function AppSidebar() {
             </svg>
           </SidebarGroupLabel>
           <SidebarGroupLabel className="my-2">
-            <Link href="/app" className='w-full'>
-              <Button variant="ghost" className="w-full" size="lg">
-                New Chat
-              </Button>
-            </Link>
+            <NewChatSidebar />
           </SidebarGroupLabel>
 
-          <SidebarGroupContent>
-            <SidebarMenu className="flex flex-col gap-2">
+          <SidebarGroupContent className="flex flex-col gap-2 max-h-[50%] overflow-y-auto">
+            <SidebarMenu>
               <Suspense
                 fallback={
                   <>

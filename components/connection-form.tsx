@@ -15,7 +15,7 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card'
-import { useAppState } from '@/hooks/use-app-state'
+import { useAppLocalStorage } from '@/hooks/use-app-state'
 
 export function ConnectionForm({
   setConnectionString,
@@ -28,7 +28,7 @@ export function ConnectionForm({
     }>
   >
 }) {
-  const { value } = useAppState()
+  const { value } = useAppLocalStorage()
   const [connectionString, setConnectionStringInput] = useState(
     value.connectionString
   )

@@ -14,5 +14,5 @@ export default async function ProtectedPage() {
     return redirect('/login')
   }
 
-  return <ChatInterface user={user} />
+  return <ChatInterface user={user} chat={undefined} />
 }

@@ -5,21 +5,22 @@ import { logoutAction } from '@/actions/logout'
 import { SubmitButton } from '@/components/submit-button'
 import { Button } from '@/components/ui/button'
 import type { User } from '@supabase/supabase-js'
-import { useIsMounted } from '@/hooks/use-is-mounted'
 import { AnimatePresence } from 'motion/react'
-import { useAppState } from '@/hooks/use-app-state'
+import { useAppLocalStorage } from '@/hooks/use-app-state'
+import { useAppState } from '@/state'
 import { SidebarTrigger } from './ui/sidebar'
-
+import { ChatName } from './chat-name'
 export default function Navbar({ user }: { user: User }) {
-  const { value, setValue } = useAppState()
-  const mounted = useIsMounted()
-
-  if (!mounted) return null
+  const { value, setValue } = useAppLocalStorage()
+  const chat = useAppState((s) => s.chat)
 
   return (
     <AnimatePresence>
       <nav className="w-full p-4 flex items-center justify-between">
-        <SidebarTrigger />
+        <div className="flex items-center gap-2">
+          <SidebarTrigger />
+          {chat && <ChatName id={chat.id} initialName={chat.name} />}
+        </div>
 
         {user ? (
           <div className="flex items-center gap-2">
