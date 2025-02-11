@@ -4,7 +4,7 @@ import React, { useCallback, useRef, useState } from 'react'
 
 import { FlipWords } from './flipping-words'
 import { motion } from 'motion/react'
-import { useWindowSize } from 'usehooks-ts'
+
 import { Textarea } from '@/components/ui/textarea'
 
 type Props = {
@@ -14,8 +14,6 @@ type Props = {
 }
 
 export function Form({ onChange, onSubmit, value }: Props) {
-  const { height } = useWindowSize()
-
   const [focused, setFocused] = useState(false)
   const [conversationStarted, setConversationStarted] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -60,61 +58,31 @@ export function Form({ onChange, onSubmit, value }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TOOD: remove any
     submit(e as any)
     handleResize()
   }
 
   return (
-    <motion.form
-      onSubmit={handleSubmit}
-      initial={{
-        top: '50%',
-      }}
-      animate={{
-        top: conversationStarted && height ? `${height - 80}px` : '50%',
-      }}
-      transition={{
-        duration: 0.5,
-        ease: 'easeInOut',
-      }}
-      className="fixed left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-full w-[1000px] transition-all duration-1000 ease-in-out flex justify-center items-center"
-    >
-      <motion.div
-        initial={{
-          width: '60%',
-        }}
-        animate={{
-          width: conversationStarted ? '70%' : '60%',
-        }}
-        transition={{
-          duration: 1,
-          ease: 'easeInOut',
-        }}
-        className="relative min-w-72"
-      >
+    <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto relative">
+      <div className="relative">
         {value || conversationStarted ? null : (
-          <div className="absolute left-2 top-[12px] pointer-events-none placeholder-opacity-0	">
+          <div className="absolute left-4  top-4 pointer-events-none text-muted-foreground">
             <FlipWords words={searchs} />
           </div>
         )}
 
         <motion.div
-          initial={{
-            opacity: 0,
-            scale: 1,
-          }}
+          initial={{ opacity: 0, scale: 1 }}
           animate={{
             opacity: focused ? 1 : 0,
-            scale: focused ? 1 : 0.4,
+            scale: focused ? 1 : 0.98,
           }}
           transition={{
-            duration: 0.41,
+            duration: 0.2,
             ease: 'easeInOut',
           }}
-          className="absolute top-2 blur-md bg-primary w-full h-16 animate-pulse pointer-events-none -z-10 transition-all duration-500 ease-out rounded-sm"
+          className="absolute inset-0 blur-md bg-primary/5 rounded-lg pointer-events-none"
           ref={animationRef}
-          style={{ animationDuration: '3s' }} // Add this line to slow down the pulse animation
         />
 
         <Textarea
@@ -131,14 +99,13 @@ export function Form({ onChange, onSubmit, value }: Props) {
               handleSubmit(e)
             }
           }}
-          onResize={handleResize}
           placeholder={
             conversationStarted ? 'Ask anything about your DB...' : ''
           }
           value={value}
-          className="resize-none w-full p-3 rounded-sm"
+          className="resize-none w-full p-4 rounded-lg min-h-[56px] bg-background border focus:ring-2 focus:ring-primary/20 transition-all duration-200"
         />
-      </motion.div>
-    </motion.form>
+      </div>
+    </form>
   )
 }
