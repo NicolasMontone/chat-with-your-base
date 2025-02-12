@@ -1,7 +1,7 @@
 'use client'
 
 import { useChat } from '@ai-sdk/react'
-import { useAppLocalStorage } from '@/hooks/use-app-state'
+import { useAppLocalStorage } from '@/hooks/use-app-local-storage'
 import { useRef, useCallback, useMemo, useState, useEffect, memo } from 'react'
 import { motion } from 'motion/react'
 import { Form } from './form'
@@ -42,6 +42,8 @@ function ChatComponent({
   user: User
 }) {
   const chat = useAppState((state) => state.chat)
+  const updateChats = useAppState((state) => state.updateChats)
+  const [isNewChat, setIsNewChat] = useState(false)
   const pathname = usePathname()
   const { toast } = useToast()
   const messagesChat = useRef<HTMLDivElement | null>(null)
@@ -54,8 +56,14 @@ function ChatComponent({
         'x-connection-string': value.connectionString,
         'x-openai-api-key': value.openaiApiKey,
       },
-      onFinish: () => {
+      onFinish: async () => {
         scrollMessagesToBottom()
+        console.log('isNewChat', isNewChat)
+        if (isNewChat) {
+          console.log('isNewChat', isNewChat)
+          await updateChats()
+          setIsNewChat(false)
+        }
       },
       streamProtocol: 'data',
       sendExtraMessageFields: true,
@@ -395,10 +403,11 @@ function ChatComponent({
           <Form
             onChange={handleInputChange}
             value={input}
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               if (typeof window !== 'undefined') {
                 if (pathname === '/app') {
                   try {
+                    setIsNewChat(true)
                     window.history.pushState({}, '', `/app/${initialId}`)
                   } catch (error) {
                     console.error('Error pushing state:', error)

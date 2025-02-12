@@ -13,10 +13,9 @@ import {
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { SidebarLink } from './sidebar-link'
-import { Button } from './ui/button'
-import { Link } from 'next-view-transitions'
+
 import { NewChatSidebar } from './new-chat-sidebar'
+import { AppSidebarItems } from './app-sidebar-items'
 
 async function Items() {
   const client = await createClient()
@@ -36,83 +35,11 @@ async function Items() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const now = new Date()
-
-  const todayString = now.toISOString().split('T')[0]
-  const yesterday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() - 1
-  )
-
-  const yesterdayString = yesterday.toISOString().split('T')[0]
-
-  const items: {
-    title: string
-    data: { title: string; id: string; createdAt: string }[]
-  }[] = [
-    { title: 'Today', data: [] },
-    { title: 'Yesterday', data: [] },
-    { title: 'Past', data: [] },
-  ]
-
-  for (const chat of chats || []) {
-    // Compare to today & yesterday based on ISO string
-    const chatDateString = new Date(chat.created_at).toISOString().split('T')[0]
-
-    if (chatDateString === todayString) {
-      items[0].data.push({
-        title: chat.name!,
-        id: chat.id,
-        createdAt: chat.created_at,
-      })
-    } else if (chatDateString === yesterdayString) {
-      items[1].data.push({
-        title: chat.name!,
-        id: chat.id,
-        createdAt: chat.created_at,
-      })
-    } else {
-      items[2].data.push({
-        title: chat.name!,
-        id: chat.id,
-        createdAt: chat.created_at,
-      })
-    }
+  if (!chats) {
+    return null
   }
 
-  // Sort each group's data in descending order by created_at,
-  // so the newest items appear first within each group.
-  for (const group of items) {
-    group.data.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-  }
-
-  // Filter out empty groups
-  const filteredItems = items.filter((item) => item.data.length > 0)
-
-  return (
-    <>
-      {filteredItems?.map((item) => (
-        <SidebarMenuItem key={item.title}>
-          <SidebarGroupLabel>
-            <h3 className="text-lg font-medium p-1 text-foreground">
-              {item.title}
-            </h3>
-          </SidebarGroupLabel>
-          <SidebarMenuSub>
-            {item.data.map((chat) => (
-              <SidebarMenuSubItem key={chat.id}>
-                <SidebarLink id={chat.id} title={chat.title} />
-              </SidebarMenuSubItem>
-            ))}
-          </SidebarMenuSub>
-        </SidebarMenuItem>
-      ))}
-    </>
-  )
+  return <AppSidebarItems chats={chats} />
 }
 
 export function AppSidebar() {
@@ -239,15 +166,62 @@ export function AppSidebar() {
               <Suspense
                 fallback={
                   <>
-                    {Array(6)
-                      .fill(null)
-                      .map((_, index) => (
-                        <SidebarMenuItem key={index}>
-                          <SidebarMenuButton asChild>
-                            <div className="w-full h-3 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                    {/* Today's chats skeleton */}
+                    <SidebarMenuItem>
+                      <SidebarGroupLabel>
+                        <div className="w-16 h-6 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                      </SidebarGroupLabel>
+                      <SidebarMenuSub>
+                        {Array(3)
+                          .fill(null)
+                          .map((_, index) => (
+                            <SidebarMenuSubItem key={`today-${index}`}>
+                              <div className="flex items-center gap-2 w-full p-2">
+                                <div className="w-5 h-5 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                                <div className="flex-1 h-4 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                              </div>
+                            </SidebarMenuSubItem>
+                          ))}
+                      </SidebarMenuSub>
+                    </SidebarMenuItem>
+
+                    {/* Yesterday's chats skeleton */}
+                    <SidebarMenuItem>
+                      <SidebarGroupLabel>
+                        <div className="w-20 h-6 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                      </SidebarGroupLabel>
+                      <SidebarMenuSub>
+                        {Array(2)
+                          .fill(null)
+                          .map((_, index) => (
+                            <SidebarMenuSubItem key={`yesterday-${index}`}>
+                              <div className="flex items-center gap-2 w-full p-2">
+                                <div className="w-5 h-5 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                                <div className="flex-1 h-4 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                              </div>
+                            </SidebarMenuSubItem>
+                          ))}
+                      </SidebarMenuSub>
+                    </SidebarMenuItem>
+
+                    {/* Past chats skeleton */}
+                    <SidebarMenuItem>
+                      <SidebarGroupLabel>
+                        <div className="w-12 h-6 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                      </SidebarGroupLabel>
+                      <SidebarMenuSub>
+                        {Array(2)
+                          .fill(null)
+                          .map((_, index) => (
+                            <SidebarMenuSubItem key={`past-${index}`}>
+                              <div className="flex items-center gap-2 w-full p-2">
+                                <div className="w-5 h-5 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                                <div className="flex-1 h-4 animatePulse rounded-md bg-gray-200 dark:bg-foreground/10" />
+                              </div>
+                            </SidebarMenuSubItem>
+                          ))}
+                      </SidebarMenuSub>
+                    </SidebarMenuItem>
                   </>
                 }
               >

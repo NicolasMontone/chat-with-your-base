@@ -15,7 +15,7 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card'
-import { useAppLocalStorage } from '@/hooks/use-app-state'
+import { useAppLocalStorage } from '@/hooks/use-app-local-storage'
 
 export function ConnectionForm({
   setConnectionString,

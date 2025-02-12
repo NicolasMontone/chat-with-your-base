@@ -1,6 +1,6 @@
 import { Message } from 'ai'
 import { create } from 'zustand'
-import { getChatById } from '../actions/get-chat-by-id'
+import { getChats } from '../actions/get-chats'
 import { useToast } from '../hooks/use-toast'
 
 type AppState = {
@@ -12,21 +12,28 @@ type AppState = {
       }
     | null
     | undefined
+  chats: {
+    id: string
+    name: string
+    created_at: string
+  }[]
+  setChats: (chats: AppState['chats']) => void
   setChat: (chat: AppState['chat']) => void
-  setChatById: (id: string) => Promise<void>
+  updateChats: () => Promise<void>
 }
 
 export const useAppState = create<AppState>((set) => ({
   chat: undefined,
+  chats: [],
+  setChats: (chats) => set({ chats }),
   setChat: (chat) => set({ chat }),
-  setChatById: async (id) => {
+
+  updateChats: async () => {
     const { toast } = useToast()
-    const formData = new FormData()
-    formData.append('id', id)
-    const { data, error } = await getChatById(formData)
+    const { data, error } = await getChats()
     if (error) {
       toast({
-        title: 'Error',
+        title: 'Error fetching chats',
         description: error,
         variant: 'destructive',
       })
@@ -36,12 +43,6 @@ export const useAppState = create<AppState>((set) => ({
       return
     }
 
-    const mappedChat = {
-      id: data.id,
-      name: data.name,
-      messages: JSON.parse((data.messages as string) || '[]') as Message[],
-    }
-
-    set({ chat: mappedChat })
+    set({ chats: data })
   },
 }))

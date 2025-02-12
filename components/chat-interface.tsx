@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppLocalStorage } from '@/hooks/use-app-state'
+import { useAppLocalStorage } from '@/hooks/use-app-local-storage'
 import Chat from './chat'
 import ConnectionForm from './connection-form'
 
