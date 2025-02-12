@@ -12,7 +12,7 @@ export function NewChatSidebar() {
     setChat(null)
   }
   return (
-    <Link href="/app">
+    <Link href="/app" className="w-full">
       <Button
         variant="ghost"
         className="w-full"

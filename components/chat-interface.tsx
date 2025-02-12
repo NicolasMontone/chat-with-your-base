@@ -58,11 +58,7 @@ export default function ChatInterface({
   return (
     <>
       {shouldShowChat ? (
-        <Chat
-          initialId={chatState?.id ?? undefined}
-          user={user}
-          key={chatState?.id ?? 'new'}
-        />
+        <Chat initialId={chatState?.id ?? undefined} user={user} />
       ) : (
         <ConnectionForm setConnectionString={setValue} />
       )}

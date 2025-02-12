@@ -35,7 +35,6 @@ const toolCallToNameText = {
 
 function ChatComponent({
   initialId,
-
   user,
 }: {
   initialId?: string
