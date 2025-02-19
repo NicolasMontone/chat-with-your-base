@@ -84,6 +84,8 @@ export async function POST(req: Request) {
     apiKey: projectOpenaiApiKey!,
   })
 
+  const shouldUpdateChats = !chat
+
   const result = streamText({
     // todo remove any we already validate the field
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -219,10 +221,6 @@ export async function POST(req: Request) {
         parameters: z.object({}),
       }),
     },
-    experimental_transform: smoothStream({
-      delayInMs: 20, // optional: defaults to 10ms
-      chunking: 'line', // optional: defaults to 'word'
-    }),
     onFinish: async ({ response }) => {
       console.log('Stream completed, updating database')
       try {
@@ -287,5 +285,9 @@ Your response should be the title text only, nothing else.
   })
 
   console.log('Returning stream response')
-  return result.toDataStreamResponse()
+  return result.toDataStreamResponse({
+    headers: {
+      'x-should-update-chats': shouldUpdateChats.toString(),
+    },
+  })
 }

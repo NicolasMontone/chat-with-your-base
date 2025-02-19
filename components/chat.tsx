@@ -33,13 +33,7 @@ const toolCallToNameText = {
   getTableStats: 'Collecting table statistics...',
 }
 
-function ChatComponent({
-  initialId,
-  user,
-}: {
-  initialId?: string
-  user: User
-}) {
+function ChatComponent({ initialId, user }: { initialId: string; user: User }) {
   const chat = useAppState((state) => state.chat)
   const updateChats = useAppState((state) => state.updateChats)
   const [isNewChat, setIsNewChat] = useState(false)
@@ -47,35 +41,6 @@ function ChatComponent({
   const { toast } = useToast()
   const messagesChat = useRef<HTMLDivElement | null>(null)
   const { value } = useAppLocalStorage()
-
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({
-      api: '/api/chat',
-      headers: {
-        'x-connection-string': value.connectionString,
-        'x-openai-api-key': value.openaiApiKey,
-      },
-      onFinish: async () => {
-        scrollMessagesToBottom()
-        console.log('isNewChat', isNewChat)
-        if (isNewChat) {
-          console.log('isNewChat', isNewChat)
-          await updateChats()
-          setIsNewChat(false)
-        }
-      },
-      streamProtocol: 'data',
-      sendExtraMessageFields: true,
-      id: initialId,
-      initialMessages: chat?.messages ?? [],
-      onError: (error) => {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        })
-      },
-    })
 
   // Optimize scroll behavior with RAF
   const scrollMessagesToBottom = useCallback(() => {
@@ -88,6 +53,49 @@ function ChatComponent({
       })
     })
   }, [])
+
+  const shouldUpdateChats = useRef(false)
+
+  const onFinish = useCallback(() => {
+    scrollMessagesToBottom()
+
+    if (shouldUpdateChats.current) {
+      setIsNewChat(false)
+      updateChats().catch((err) => {
+        console.error(err)
+      })
+    }
+  }, [isNewChat, scrollMessagesToBottom, updateChats])
+
+  const onError = useCallback((error: Error) => {
+    toast({
+      title: 'Error',
+      description: error.message,
+      variant: 'destructive',
+    })
+  }, [])
+
+  const onResponse = useCallback((response: Response) => {
+    if (response.headers.get('x-should-update-chats') === 'true') {
+      shouldUpdateChats.current = true
+    }
+  }, [])
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      api: '/api/chat',
+      headers: {
+        'x-connection-string': value.connectionString,
+        'x-openai-api-key': value.openaiApiKey,
+      },
+      onFinish,
+      streamProtocol: 'data',
+      sendExtraMessageFields: true,
+      id: initialId,
+      initialMessages: chat?.messages ?? [],
+      onError,
+      onResponse,
+    })
 
   // Cleanup SQL results when component unmounts
   useEffect(() => {

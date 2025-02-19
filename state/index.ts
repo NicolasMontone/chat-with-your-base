@@ -1,7 +1,6 @@
 import { Message } from 'ai'
 import { create } from 'zustand'
 import { getChats } from '../actions/get-chats'
-import { useToast } from '../hooks/use-toast'
 
 type AppState = {
   chat:
@@ -22,21 +21,18 @@ type AppState = {
   updateChats: () => Promise<void>
 }
 
-export const useAppState = create<AppState>((set) => ({
+export const useAppState = create<AppState>((set, get) => ({
   chat: undefined,
   chats: [],
   setChats: (chats) => set({ chats }),
   setChat: (chat) => set({ chat }),
-
   updateChats: async () => {
-    const { toast } = useToast()
+    // await 3 seconds
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+
     const { data, error } = await getChats()
     if (error) {
-      toast({
-        title: 'Error fetching chats',
-        description: error,
-        variant: 'destructive',
-      })
+      return
     }
 
     if (!data) {

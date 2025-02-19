@@ -21,7 +21,7 @@ export function AppSidebarItems({
   const { setChats, chats } = useAppState()
   useEffect(() => {
     setChats(chatsProp)
-  }, [chatsProp])
+  }, [chatsProp, setChats])
 
   const now = new Date()
 
