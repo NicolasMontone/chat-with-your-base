@@ -10,9 +10,11 @@ import { useAppLocalStorage } from '@/hooks/use-app-local-storage'
 import { useAppState } from '@/state'
 import { SidebarTrigger } from './ui/sidebar'
 import { ChatName } from './chat-name'
+import { useToast } from '../hooks/use-toast'
 export default function Navbar({ user }: { user: User }) {
   const { value, setValue } = useAppLocalStorage()
   const chat = useAppState((s) => s.chat)
+  const { toast } = useToast()
 
   return (
     <AnimatePresence>
@@ -24,7 +26,26 @@ export default function Navbar({ user }: { user: User }) {
 
         {user ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm">Hello, {user.email}</p>
+            <Button
+              variant={'ghost'}
+              onClick={() => {
+                const email = 'montonenicolas01@gmail.com'
+                try {
+                  navigator.clipboard.writeText(email)
+                  toast({
+                    title: 'Email copied to clipboard',
+                    description: 'You can send feedback to this email',
+                  })
+                } catch (error) {
+                  toast({
+                    title: 'Error copying email',
+                    description: `Send me feedback at: ${email}`,
+                  })
+                }
+              }}
+            >
+              Feedback
+            </Button>
             {value.connectionString && (
               <AnimatePresence>
                 <Button
