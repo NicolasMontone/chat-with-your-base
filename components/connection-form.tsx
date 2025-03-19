@@ -90,7 +90,8 @@ export function ConnectionForm({
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+   <div className="bg-background fixed inset-0 z-50 flex items-center justify-center">
+     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle>Add Connection String</CardTitle>
         <CardDescription>
@@ -152,6 +153,7 @@ export function ConnectionForm({
         </form>
       </CardContent>
     </Card>
+   </div>
   )
 }
 
