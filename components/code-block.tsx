@@ -158,7 +158,7 @@ function CodeBlock({
                   size={'sm'}
                   variant={'outline'}
                   onClick={handleShowChart}
-                  disabled={isChartLoading}
+                  disabled={isChartLoading || isDisabled}
                   className="flex items-center gap-2"
                 >
                   <BarChart3 className="w-4 h-4" />
